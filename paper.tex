@@ -1,0 +1,72 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+
+\title{Summative Bicycle Steer Control}
+
+\author{Jason K. Moore}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Outline}
+
+\section{Proportional Dervivative Roll Control}
+
+Proportional Derivative Roll Control
+
+- What are the achievable closed loop dynamics?
+- Vary speed and controller gain, show 3D root locus
+- Pick a speed and vary the controller gain, show 2D root locus
+- Difference with and without a rigid rider
+
+\begin{align}
+  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
+  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix} \\
+  \bar{u} = \left[ T_\delta \right] \\
+  T_\delta = T_{\delta,\textrm{human}} + T_{\delta,\textrm{robot}} \\
+  T_{\delta,\textrm{robot}} = k_\phi \phi + k_{\dot{\phi}} \dot{\phi} \\
+  \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} + \mathbf{B} \left[ T_{\delta,\textrm{human}} \right] \\
+  \mathbf{K} = \begin{bmatrix} k_\phi & k_{\dot{\phi}} & 0 & 0 \end{bmatrix}
+\end{align}
+
+Figure: plot the real parts of the eigenvalues vs of A-BK for inf < kphidot <
+inf with some intervals of k. We coudl plot strictly the largest real
+eigenvalue to minimize clutter on the image.
+
+Figure: show the gain that produces the lowest stable speed range
+
+\section{Full State Feedback}
+
+- I could frame the whole controller as a full state feedback of essential
+bicycle state variables and then show degenerate cases. So [kphi kphidot kdelta
+kdeltadot]
+- Look at LQR solution for full state feedback and limit the rider steer torque
+- What are the achievable closed loop dynamics? (8 gains now)
+- Not sufficient to balance at zero speed (what is lowest speed?)
+
+\section{Effect of Electric Motor Dynamics}
+
+- Limitations in motor power and bandwidth
+
+\section{Can we mimic other real bicycles?}
+
+- Optimization that finds controller parameters for matching dynamics?
+
+\section{Comparison of the gyrobike and the steer motor}
+
+- Show how the same dynamics can be produced
+- Energy costs comparison
+
+\section{How does this effect thigns with a leaning rider?}
+
+\section{Add human control}
+
+- Handling quality metric
+
+\section{Time varying controller gains (or as a function of speed)}
+
+\section{Is the stability deteriminal to maunerability?}
+
+\end{document}
