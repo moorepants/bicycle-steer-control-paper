@@ -1,0 +1,12 @@
+name: bicycle-steer-control-paper
+dependencies:
+  - dynamicisttoolkit
+  - ipython
+  - matplotlib
+  - numpy
+  - pandas
+  - plotly
+  - python
+  - scipy
+  - uncertainties
+  - yeadon
