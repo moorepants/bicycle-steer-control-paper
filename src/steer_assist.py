@@ -1,13 +1,11 @@
 import os
 
-from scipy.linalg import solve_continuous_are
 import control as ct
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
 
-from bicycleparameters.bicycle import benchmark_par_to_canonical, ab_matrix
+from bicycleparameters.bicycle import ab_matrix
 from bicycleparameters.models import Meijaard2007Model
 from bicycleparameters.parameter_sets import Meijaard2007ParameterSet
 
@@ -22,7 +20,7 @@ class SteerAssistModel(Meijaard2007Model):
 
     Tdel_total = -kphidot*phidot - kphi*phi + Tdel
 
-    Tdel_total = [kphi, kdelta, kphidot, kdeltadot] * x
+    Tdel_total = -[kphi, kdelta, kphidot, kdeltadot] * x
 
     x = [roll angle,
          steer angle,
@@ -35,39 +33,39 @@ class SteerAssistModel(Meijaard2007Model):
     """
 
     def form_state_space_matrices(self, **parameter_overrides):
-        """Returns the A and B matrices for the Whipple model linearized about
-        the upright constant velocity configuration.
-
-        Parameters
-        ==========
-        speed : float
-            The speed of the bicycle.
+        """Returns the A and B matrices for the Whipple-Carvallo model
+        linearized about the upright constant velocity configuration with a
+        full state feedback steer controller.
 
         Returns
         =======
-        A : ndarray, shape(4,4)
+        A : ndarray, shape(4,4) or shape(n,4,4)
             The state matrix.
-        B : ndarray, shape(4,2)
+        B : ndarray, shape(4,2) or shape(n,4,2)
             The input matrix.
 
         Notes
         =====
         ``A`` and ``B`` describe the Whipple model in state space form:
 
-            x' = A * x + B * u
+            x' = (A - B*K)*x + B*u
 
-        where
+        where::
 
-        The states are [roll angle,
-                        steer angle,
-                        roll rate,
-                        steer rate]
+        x = |phi   | = |roll angle |
+            |delta |   |steer angle|
+            |phi'  |   |roll rate  |
+            |delta'|   |steer rate |
 
-        The inputs are [roll torque,
-                        steer torque]
+        K = |0    0      0       0        |
+            |kphi kdelta kphidot kdeltadot|
+
+        u = |Tphi  | = |roll torque |
+            |Tdelta|   |steer torque|
 
         """
-        # These parameters are not used in the computation of M, C1, K0, K2.
+        # g, v, and the contoller gains are not used in the computation of M,
+        # C1, K0, K2.
         gain_names = ['kphi', 'kdelta', 'kphidot', 'kdeltadot']
         non_canon = {}
         for par_name in ['g', 'v'] + gain_names:
@@ -112,6 +110,7 @@ class SteerAssistModel(Meijaard2007Model):
         # TODO : implement if one of the gains is an array
 
         return A, B
+
 
 # NOTE : This is Browser + Jason taken from HumanControl repo
 meijaard2007_parameters = {  # dictionary of the parameters in Meijaard 2007
@@ -179,7 +178,8 @@ for i, speed in enumerate(speeds):
     B_delta = B[:, 1, np.newaxis]  # shape(4,1)
     C = ct.ctrb(A, B_delta)
     ctrb_mats.append(np.linalg.matrix_rank(C))
-    _, evals[i], K = ct.care(A, B_delta, Q, method='slycot')
+    #_, evals[i], K = ct.care(A, B_delta, Q)
+    _, _, K = ct.care(A, B_delta, Q)
     K = K.squeeze()
     gain_arrays['kphi'].append(K[0])
     gain_arrays['kdelta'].append(K[1])
@@ -190,7 +190,7 @@ for i, speed in enumerate(speeds):
                                                   kdelta=K[1],
                                                   kphidot=K[2],
                                                   kdeltadot=K[3])
-    #evals[i], evecs[i] = np.linalg.eig(A_closed)
+    evals[i], evecs[i] = np.linalg.eig(A_closed)
 
 fig, ax = plt.subplots()
 ax.plot(speeds, np.real(evals), '.k')
@@ -199,8 +199,23 @@ ax.set_ylim((-10.0, 10.0))
 ax.grid()
 fig.savefig(os.path.join(FIG_DIR, 'lqr-eig.png'), dpi=300)
 
-fig, ax = plt.subplots()
-ax.plot(ctrb_mats)
+fig, axes = plt.subplots(4, 1, sharex=True)
+axes[0].plot(speeds, gain_arrays['kphi'])
+axes[1].plot(speeds, gain_arrays['kdelta'])
+axes[2].plot(speeds, gain_arrays['kphidot'])
+axes[3].plot(speeds, gain_arrays['kdeltadot'])
+
+betas = np.rad2deg(model.calc_modal_controllability(v=speeds))
+fig, axes = plt.subplots(*betas[0].shape, sharex=True, sharey=True)
+axes[0, 0].plot(speeds, betas[:, 0, 0])
+axes[0, 1].plot(speeds, betas[:, 0, 1])
+axes[1, 0].plot(speeds, betas[:, 1, 0])
+axes[1, 1].plot(speeds, betas[:, 1, 1])
+axes[2, 0].plot(speeds, betas[:, 2, 0])
+axes[2, 1].plot(speeds, betas[:, 2, 1])
+axes[3, 0].plot(speeds, betas[:, 3, 0])
+axes[3, 1].plot(speeds, betas[:, 3, 1])
+fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
 
 #model.plot_eigenvalue_parts(kphidot=np.linspace(-20.0, 10.0, num=1000))
 #model.plot_eigenvalue_parts(v=np.linspace(0.0, 10.0, num=1000))
