@@ -1,10 +1,11 @@
 import os
 
-import numpy as np
-import scipy as sp
 from scipy.linalg import solve_continuous_are
+import control as ct
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy as sp
 
 from bicycleparameters.bicycle import benchmark_par_to_canonical
 from bicycleparameters.models import Meijaard2007Model
@@ -62,10 +63,10 @@ class SteerAssistModel(Meijaard2007Model):
             return M, C1, K0, K2
         else:
             M, C1, K0, K2 = benchmark_par_to_canonical(par)
-            C1[1, 0] = C1[1, 0] + par['kphidot']
-            C1[1, 1] = C1[1, 1] + par['kdeltadot']
             K0[1, 0] = K0[1, 0] + par['kphi']
             K0[1, 1] = K0[1, 1] + par['kdelta']
+            C1[1, 0] = C1[1, 0] + par['kphidot']
+            C1[1, 1] = C1[1, 1] + par['kdeltadot']
             return M, C1, K0, K2
 
 # NOTE : This is Browser + Jason taken from HumanControl repo
@@ -121,28 +122,39 @@ ax.set_ylim((-10.0, 10.0))
 
 fig.savefig(os.path.join(FIG_DIR, 'roll-rate-eig-effect.png'), dpi=300)
 
-speeds = np.linspace(0.0, 10.0, num=1000)
-A, B = model.form_state_space_matrices(v=0.5)
-B_delta = B[:, 1, np.newaxis]  # shape(4,1)
+speeds = np.linspace(0.0, 10.0, num=2000)
+gain_arrays = {'kphi': [], 'kphidot': [], 'kdelta': [], 'kdeltadot': []}
+ctrb_mats = []
 R = np.array([1.0])
 Q = np.eye(4)
-S = sp.linalg.solve_continuous_are(A, B_delta, Q, R)
-K = np.squeeze(B_delta.T @ S)
-kphi, kdelta, kphidot, kdeltadot = K
-A_closed, _ = model.form_state_space_matrices(v=0.5,
-                                              kphi=float(kphi),
-                                              kdelta=float(kdelta),
-                                              kphidot=float(kphidot),
-                                              kdeltadot=float(kdeltadot))
-fig, ax = plt.subplots()
-ax = model.plot_eigenvalue_parts(ax=ax,
-                                 kphi=float(kphi),
-                                 kdelta=float(kdelta),
-                                 kphidot=float(kphidot),
-                                 kdeltadot=float(kdeltadot),
-                                 v=np.linspace(0.0, 10.0, num=2000))
-#A_closed = A - B[:, 1] @ K
+evals = np.zeros((len(speeds), 4), dtype='complex128')
+evecs = np.zeros((len(speeds), 4, 4), dtype='complex128')
+for i, speed in enumerate(speeds):
+    A, B = model.form_state_space_matrices(v=speed)
+    B_delta = B[:, 1, np.newaxis]  # shape(4,1)
+    C = ct.ctrb(A, B_delta)
+    ctrb_mats.append(np.linalg.matrix_rank(C))
+    _, evals[i], K = ct.care(A, B_delta, Q, method='slycot')
+    K = K.squeeze()
+    gain_arrays['kphi'].append(K[0])
+    gain_arrays['kdelta'].append(K[1])
+    gain_arrays['kphidot'].append(K[2])
+    gain_arrays['kdeltadot'].append(K[3])
+    A_closed, _ = model.form_state_space_matrices(v=speed,
+                                                  kphi=K[0],
+                                                  kdelta=K[1],
+                                                  kphidot=K[2],
+                                                  kdeltadot=K[3])
+    evals[i], evecs[i] = np.linalg.eig(A_closed)
 
+fig, ax = plt.subplots()
+ax.plot(speeds, np.real(evals), '.k')
+ax.set_ylim((-10.0, 10.0))
+ax.grid()
+fig.savefig(os.path.join(FIG_DIR, 'lqr-eig.png'), dpi=300)
+
+fig, ax = plt.subplots()
+ax.plot(ctrb_mats)
 
 #model.plot_eigenvalue_parts(kphidot=np.linspace(-20.0, 10.0, num=1000))
 #model.plot_eigenvalue_parts(v=np.linspace(0.0, 10.0, num=1000))
