@@ -17,10 +17,15 @@
 
 Proportional Derivative Roll Control
 
-- What are the achievable closed loop dynamics?
-- Vary speed and controller gain, show 3D root locus
-- Pick a speed and vary the controller gain, show 2D root locus
-- Difference with and without a rigid rider
+\begin{itemize}
+  \item What are the achievable closed loop dynamics?
+  \item Vary speed and controller gain, show 3D root locus
+  \item Pick a speed and vary the controller gain, show 2D root locus
+  \item Difference with and without a rigid rider
+  \item Could be PD on roll rate criteria (overshoot, decay time) and then pole
+    placement with the two parameters for each speed to get similar behavior
+    across speeds.
+\end{itemize}
 
 \begin{align}
   \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
