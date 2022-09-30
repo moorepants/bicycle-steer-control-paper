@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
-from bicycleparameters.bicycle import benchmark_par_to_canonical
+from bicycleparameters.bicycle import benchmark_par_to_canonical, ab_matrix
 from bicycleparameters.models import Meijaard2007Model
 from bicycleparameters.parameter_sets import Meijaard2007ParameterSet
 
@@ -34,40 +34,84 @@ class SteerAssistModel(Meijaard2007Model):
 
     """
 
-    def form_reduced_canonical_matrices(self, **parameter_overrides):
+    def form_state_space_matrices(self, **parameter_overrides):
+        """Returns the A and B matrices for the Whipple model linearized about
+        the upright constant velocity configuration.
 
-        par, array_key, array_val = self._parse_parameter_overrides(
+        Parameters
+        ==========
+        speed : float
+            The speed of the bicycle.
+
+        Returns
+        =======
+        A : ndarray, shape(4,4)
+            The state matrix.
+        B : ndarray, shape(4,2)
+            The input matrix.
+
+        Notes
+        =====
+        ``A`` and ``B`` describe the Whipple model in state space form:
+
+            x' = A * x + B * u
+
+        where
+
+        The states are [roll angle,
+                        steer angle,
+                        roll rate,
+                        steer rate]
+
+        The inputs are [roll torque,
+                        steer torque]
+
+        """
+        # These parameters are not used in the computation of M, C1, K0, K2.
+        gain_names = ['kphi', 'kdelta', 'kphidot', 'kdeltadot']
+        non_canon = {}
+        for par_name in ['g', 'v'] + gain_names:
+            if par_name in parameter_overrides.keys():
+                non_canon[par_name] = parameter_overrides[par_name]
+            else:
+                non_canon[par_name] = self.parameter_set.parameters[par_name]
+
+        M, C1, K0, K2 = self.form_reduced_canonical_matrices(
             **parameter_overrides)
 
-        if array_val is not None:
-            M = np.zeros((len(array_val), 2, 2))
-            C1 = np.zeros((len(array_val), 2, 2))
-            K0 = np.zeros((len(array_val), 2, 2))
-            K2 = np.zeros((len(array_val), 2, 2))
-            for i, val in enumerate(array_val):
-                par[array_key] = val
-                M[i], C1[i], K0[i], K2[i] = benchmark_par_to_canonical(par)
-                if array_key == 'kphidot':
-                    C1[i, 1, 0] = C1[i, 1, 0] + val
-                elif array_key == 'kphi':
-                    K0[i, 1, 0] = K0[i, 1, 0] + val
-                elif array_key == 'kdeltadot':
-                    C1[i, 1, 1] = C1[i, 1, 1] + val
-                elif array_key == 'kdelta':
-                    K0[i, 1, 1] = K0[i, 1, 1] + val
-                else:
-                    C1[i, 1, 0] = C1[i, 1, 0] + par['kphidot']
-                    K0[i, 1, 0] = K0[i, 1, 0] + par['kphi']
-                    C1[i, 1, 1] = C1[i, 1, 1] + par['kdeltadot']
-                    K0[i, 1, 1] = K0[i, 1, 1] + par['kdelta']
-            return M, C1, K0, K2
-        else:
-            M, C1, K0, K2 = benchmark_par_to_canonical(par)
-            K0[1, 0] = K0[1, 0] + par['kphi']
-            K0[1, 1] = K0[1, 1] + par['kdelta']
-            C1[1, 0] = C1[1, 0] + par['kphidot']
-            C1[1, 1] = C1[1, 1] + par['kdeltadot']
-            return M, C1, K0, K2
+        # steer controller gains
+        K = np.array([[0.0, 0.0, 0.0, 0.0],
+                      [non_canon[p] for p in gain_names]])
+
+        if len(M.shape) == 3:  # one of the canonical parameters is an array
+            A = np.zeros((M.shape[0], 4, 4))
+            B = np.zeros((M.shape[0], 4, 2))
+            for i, (Mi, C1i, K0i, K2i) in enumerate(zip(M, C1, K0, K2)):
+                Ai, Bi = ab_matrix(Mi, C1i, K0i, K2i, non_canon['v'],
+                                   non_canon['g'])
+                A[i] = Ai - Bi@K
+                B[i] = Bi
+        elif not isinstance(non_canon['v'], float):
+            A = np.zeros((len(non_canon['v']), 4, 4))
+            B = np.zeros((len(non_canon['v']), 4, 2))
+            for i, vi in enumerate(non_canon['v']):
+                Ai, Bi = ab_matrix(M, C1, K0, K2, vi, non_canon['g'])
+                A[i] = Ai - Bi@K
+                B[i] = Bi
+        elif not isinstance(non_canon['g'], float):
+            A = np.zeros((len(non_canon['g']), 4, 4))
+            B = np.zeros((len(non_canon['g']), 4, 2))
+            for i, gi in enumerate(non_canon['g']):
+                Ai, Bi = ab_matrix(M, C1, K0, K2, non_canon['v'], gi)
+                A[i] = Ai - Bi@K
+                B[i] = Bi
+        else:  # scalar parameters
+            A, B = ab_matrix(M, C1, K0, K2, non_canon['v'], non_canon['g'])
+            A = A - B@K
+            B = B
+        # TODO : implement if one of the gains is an array
+
+        return A, B
 
 # NOTE : This is Browser + Jason taken from HumanControl repo
 meijaard2007_parameters = {  # dictionary of the parameters in Meijaard 2007
@@ -127,6 +171,7 @@ gain_arrays = {'kphi': [], 'kphidot': [], 'kdelta': [], 'kdeltadot': []}
 ctrb_mats = []
 R = np.array([1.0])
 Q = np.eye(4)
+#Q = np.diag([1.0, 0.5, 10.0, 0.5])
 evals = np.zeros((len(speeds), 4), dtype='complex128')
 evecs = np.zeros((len(speeds), 4, 4), dtype='complex128')
 for i, speed in enumerate(speeds):
@@ -145,10 +190,11 @@ for i, speed in enumerate(speeds):
                                                   kdelta=K[1],
                                                   kphidot=K[2],
                                                   kdeltadot=K[3])
-    evals[i], evecs[i] = np.linalg.eig(A_closed)
+    #evals[i], evecs[i] = np.linalg.eig(A_closed)
 
 fig, ax = plt.subplots()
 ax.plot(speeds, np.real(evals), '.k')
+ax.plot(speeds, np.imag(evals), '.b')
 ax.set_ylim((-10.0, 10.0))
 ax.grid()
 fig.savefig(os.path.join(FIG_DIR, 'lqr-eig.png'), dpi=300)
