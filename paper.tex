@@ -25,6 +25,8 @@ Proportional Derivative Roll Control
   \item Could be PD on roll rate criteria (overshoot, decay time) and then pole
     placement with the two parameters for each speed to get similar behavior
     across speeds.
+  \item What if we only have rate feedback (raw IMU data)? Does steer rate
+    feedback help?
 \end{itemize}
 
 \begin{align}
@@ -58,6 +60,22 @@ kdeltadot]
 - Look at LQR solution for full state feedback and limit the rider steer torque
 - What are the achievable closed loop dynamics? (8 gains now)
 - Not sufficient to balance at zero speed (what is lowest speed?)
+- Show that speed can't affect the rank of the controlability matrix
+(analytically)
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/modal-controllability.png}
+  \caption{Testing}
+  \label{fig:modal-controllability}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/lqr-eig.png}
+  \caption{Testing}
+  \label{fig:lqr-eig}
+\end{figure}
 
 \section{Effect of Electric Motor Dynamics}
 
