@@ -14,8 +14,11 @@ SRC_DIR = os.path.dirname(SCRIPT_PATH)
 ROOT_DIR = os.path.realpath(os.path.join(SRC_DIR, '..'))
 FIG_DIR = os.path.join(ROOT_DIR, 'figures')
 
+if not os.path.exists(FIG_DIR):
+    os.mkdir(FIG_DIR)
 
-class SteerAssistModel(Meijaard2007Model):
+
+class SteerControlModel(Meijaard2007Model):
     """
 
     Tdel_total = -kphidot*phidot - kphi*phi + Tdel
@@ -46,16 +49,16 @@ class SteerAssistModel(Meijaard2007Model):
 
         Notes
         =====
-        ``A`` and ``B`` describe the Whipple model in state space form:
+        A, B, and K describe the model in state space form:
 
             x' = (A - B*K)*x + B*u
 
         where::
 
-        x = |phi   | = |roll angle |
-            |delta |   |steer angle|
-            |phi'  |   |roll rate  |
-            |delta'|   |steer rate |
+        x = |phi     | = |roll angle |
+            |delta   |   |steer angle|
+            |phidot  |   |roll rate  |
+            |deltadot|   |steer rate |
 
         K = |0    0      0       0        |
             |kphi kdelta kphidot kdeltadot|
@@ -64,50 +67,63 @@ class SteerAssistModel(Meijaard2007Model):
             |Tdelta|   |steer torque|
 
         """
+        gain_names = ['kphi', 'kdelta', 'kphidot', 'kdeltadot']
+
+        par, array_key, array_val = self._parse_parameter_overrides(
+            **parameter_overrides)
+
         # g, v, and the contoller gains are not used in the computation of M,
         # C1, K0, K2.
-        gain_names = ['kphi', 'kdelta', 'kphidot', 'kdeltadot']
-        non_canon = {}
-        for par_name in ['g', 'v'] + gain_names:
-            if par_name in parameter_overrides.keys():
-                non_canon[par_name] = parameter_overrides[par_name]
-            else:
-                non_canon[par_name] = self.parameter_set.parameters[par_name]
 
         M, C1, K0, K2 = self.form_reduced_canonical_matrices(
             **parameter_overrides)
 
-        # steer controller gains
-        K = np.array([[0.0, 0.0, 0.0, 0.0],
-                      [non_canon[p] for p in gain_names]])
+        # steer controller gains, 2x4, no roll control
+        if array_key in gain_names:
+            # if one of the gains is an array, create a set of gain matrices
+            # where that single gain varies across the set
+            K = np.array([[0.0, 0.0, 0.0, 0.0],
+                          [par[p][0] if p == array_key else par[p]
+                           for p in gain_names]])
+            # K is now shape(n, 2, 4)
+            K = np.tile(K, (len(array_val), 1, 1))
+            K[:, 1, gain_names.index(array_key)] = array_val
+        else:  # gains are not an array
+            K = np.array([[0.0, 0.0, 0.0, 0.0],
+                          [par[p] for p in gain_names]])
 
-        if len(M.shape) == 3:  # one of the canonical parameters is an array
+        if M.ndim == 3:  # one of the canonical parameters is an array
             A = np.zeros((M.shape[0], 4, 4))
             B = np.zeros((M.shape[0], 4, 2))
             for i, (Mi, C1i, K0i, K2i) in enumerate(zip(M, C1, K0, K2)):
-                Ai, Bi = ab_matrix(Mi, C1i, K0i, K2i, non_canon['v'],
-                                   non_canon['g'])
+                Ai, Bi = ab_matrix(Mi, C1i, K0i, K2i, par['v'], par['g'])
                 A[i] = Ai - Bi@K
                 B[i] = Bi
-        elif not isinstance(non_canon['v'], float):
-            A = np.zeros((len(non_canon['v']), 4, 4))
-            B = np.zeros((len(non_canon['v']), 4, 2))
-            for i, vi in enumerate(non_canon['v']):
-                Ai, Bi = ab_matrix(M, C1, K0, K2, vi, non_canon['g'])
+        elif array_key in gain_names:
+            A = np.zeros((len(array_val), 4, 4))
+            B = np.zeros((len(array_val), 4, 2))
+            for i, Ki in enumerate(K):
+                Ai, Bi = ab_matrix(M, C1, K0, K2, par['v'], par['g'])
+                A[i] = Ai - Bi@Ki
+                B[i] = Bi
+        elif array_key == 'v':
+            A = np.zeros((len(par['v']), 4, 4))
+            B = np.zeros((len(par['v']), 4, 2))
+            for i, vi in enumerate(par['v']):
+                Ai, Bi = ab_matrix(M, C1, K0, K2, vi, par['g'])
                 A[i] = Ai - Bi@K
                 B[i] = Bi
-        elif not isinstance(non_canon['g'], float):
-            A = np.zeros((len(non_canon['g']), 4, 4))
-            B = np.zeros((len(non_canon['g']), 4, 2))
-            for i, gi in enumerate(non_canon['g']):
-                Ai, Bi = ab_matrix(M, C1, K0, K2, non_canon['v'], gi)
+        elif array_key == 'g':
+            A = np.zeros((len(par['g']), 4, 4))
+            B = np.zeros((len(par['g']), 4, 2))
+            for i, gi in enumerate(par['g']):
+                Ai, Bi = ab_matrix(M, C1, K0, K2, par['v'], gi)
                 A[i] = Ai - Bi@K
                 B[i] = Bi
         else:  # scalar parameters
-            A, B = ab_matrix(M, C1, K0, K2, non_canon['v'], non_canon['g'])
+            A, B = ab_matrix(M, C1, K0, K2, par['v'], par['g'])
             A = A - B@K
             B = B
-        # TODO : implement if one of the gains is an array
 
         return A, B
 
@@ -149,23 +165,43 @@ meijaard2007_parameters = {  # dictionary of the parameters in Meijaard 2007
 
 
 parameter_set = Meijaard2007ParameterSet(meijaard2007_parameters, True)
+model = SteerControlModel(parameter_set)
 
-model = SteerAssistModel(parameter_set)
+# Figure 1: Plot the real & imaginary eigenvalue parts as a function of speed
+# for a series of roll derivative control gains.
 cmap = mpl.colormaps['viridis']
-gains = [0.0, -1.0, -5.0, -10.0, -50.0, -100.0, -500.0, -1000.0, -5000.0]
+gains = [0.0, -1.0, -5.0, -10.0, -50.0, -100.0, -500.0]  # , -1000.0, -5000.0]
 color_vals = np.linspace(0.2, 1.0, num=len(gains))
 
 fig, ax = plt.subplots()
 for gain, color_val in zip(gains, color_vals):
     color_rgb = cmap(color_val)
     ax = model.plot_eigenvalue_parts(ax=ax, kphidot=gain,
-                                     colors=(color_rgb, color_rgb, color_rgb),
-                                     v=np.linspace(0.0, 10.0, num=2000))
+                                     colors=4*[color_rgb],
+                                     v=np.linspace(0.0, 10.0, num=400))
 ax.set_ylim((-10.0, 10.0))
 
 fig.savefig(os.path.join(FIG_DIR, 'roll-rate-eig-effect.png'), dpi=300)
 
-speeds = np.linspace(0.0, 10.0, num=2000)
+# Figure 2: At a specific low speed how does ramping up the roll rate gain
+# change the eigenvalues.
+fig, ax = plt.subplots()
+ax = model.plot_eigenvalue_parts(ax=ax,
+                                 kphidot=np.linspace(0.0, -50.0, num=100),
+                                 v=1.0)
+fig.savefig(os.path.join(FIG_DIR, 'roll-rate-low-speed-eig-effect.png'),
+            dpi=300)
+
+# Figure 3: Show what the eigenvectors of the closed loop control look like at
+# different speeds.
+axes = model.plot_eigenvectors(kphidot=-50.0,
+                               v=[0.0, 3.0, 5.0, 7.0, 9.0])
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'roll-rate-gain-evec-effect.png'),
+            dpi=300)
+
+
+speeds = np.linspace(0.0, 10.0, num=1000)
 gain_arrays = {'kphi': [], 'kphidot': [], 'kdelta': [], 'kdeltadot': []}
 ctrb_mats = []
 R = np.array([1.0])
@@ -193,6 +229,7 @@ for i, speed in enumerate(speeds):
     evals[i], evecs[i] = np.linalg.eig(A_closed)
 
 fig, ax = plt.subplots()
+ax = model.plot_eigenvalue_parts(ax=ax, v=speeds)
 ax.plot(speeds, np.real(evals), '.k')
 ax.plot(speeds, np.imag(evals), '.b')
 ax.set_ylim((-10.0, 10.0))
@@ -205,7 +242,9 @@ axes[1].plot(speeds, gain_arrays['kdelta'])
 axes[2].plot(speeds, gain_arrays['kphidot'])
 axes[3].plot(speeds, gain_arrays['kdeltadot'])
 
+speeds = np.linspace(0.0, 10.0, num=1000)
 betas = np.rad2deg(model.calc_modal_controllability(v=speeds))
+#betas[betas > 90.0] = 180.0 - betas[betas > 90.0]
 fig, axes = plt.subplots(*betas[0].shape, sharex=True, sharey=True)
 axes[0, 0].plot(speeds, betas[:, 0, 0])
 axes[0, 1].plot(speeds, betas[:, 0, 1])
@@ -215,10 +254,16 @@ axes[2, 0].plot(speeds, betas[:, 2, 0])
 axes[2, 1].plot(speeds, betas[:, 2, 1])
 axes[3, 0].plot(speeds, betas[:, 3, 0])
 axes[3, 1].plot(speeds, betas[:, 3, 1])
+#fig, ax = plt.subplots()
+#ax.plot(speeds, betas[:, 0, 0], '.')
+#ax.plot(speeds, betas[:, 0, 1], '.')
+#ax.plot(speeds, betas[:, 1, 0], '.')
+#ax.plot(speeds, betas[:, 1, 1], '.')
+#ax.plot(speeds, betas[:, 2, 0], '.')
+#ax.plot(speeds, betas[:, 2, 1], '.')
+#ax.plot(speeds, betas[:, 3, 0], '.')
+#ax.plot(speeds, betas[:, 3, 1], '.')
+#ax.set_ylim((0.0, 90.0))
 fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
-
-#model.plot_eigenvalue_parts(kphidot=np.linspace(-20.0, 10.0, num=1000))
-#model.plot_eigenvalue_parts(v=np.linspace(0.0, 10.0, num=1000))
-#model.plot_eigenvalue_parts(kphidot=-10.0, v=np.linspace(0.0, 10.0, num=1000))
 
 plt.show()
