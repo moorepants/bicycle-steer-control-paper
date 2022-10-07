@@ -9,13 +9,12 @@ steer input.
 import os
 
 from bicycleparameters.parameter_sets import Meijaard2007ParameterSet
-import control as ct
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.optimize as spo
 
 from data import bike_with_rider, bike_without_rider
 from model import SteerControlModel
+from utils import find_uncontrollable_points, calc_det_control
 
 SCRIPT_PATH = os.path.realpath(__file__)
 SRC_DIR = os.path.dirname(SCRIPT_PATH)
@@ -29,31 +28,13 @@ parameter_set = Meijaard2007ParameterSet(bike_with_rider, True)
 model_with_rider = SteerControlModel(parameter_set)
 
 
-def calc_det_control(model, speed):
-    A, B = model.form_state_space_matrices(v=float(speed))
-    # only steer control
-    B_delta = B[:, 1, np.newaxis]  # shape(4,1)
-    C = ct.ctrb(A, B_delta)
-    return np.linalg.det(C)
-
-
-def find_uncontrollable_points(model):
-    uncontrollable_points = []
-    # NOTE : If I make the first v 0.0, it finds 0.0 to be a root, but it
-    # clearly isn't if you check that speed. If you select it smaller than 1e-7
-    # fsolve doesn't converged.
-    for v in np.linspace(1e-7, 10.0, num=20):
-        res = spo.fsolve(lambda sp: calc_det_control(model, sp), v, xtol=1e-12)
-        uncontrollable_points.append(res[0])
-    return np.unique(np.round(uncontrollable_points, 10))
-
-
 fig, ax = plt.subplots()
 model_with_rider.plot_eigenvalue_parts(ax=ax,
                                        v=np.linspace(0.0, 10.0, num=100))
 points = find_uncontrollable_points(model_with_rider)
 for point in points:
     ax.axvline(point, color='black')
+    print(point)
     print(calc_det_control(model_with_rider, point))
 ax.set_title('Uncontrollable speeds: {}'.format(points))
 fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-eigenvalues-with-rider.png'),
@@ -84,3 +65,15 @@ fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR,
                          'uncontrolled-eigenvectors-without-rider.png'),
             dpi=300)
+
+axes = model_with_rider.plot_mode_simulations(v=0.0)
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v00.png'), dpi=300)
+
+axes = model_with_rider.plot_mode_simulations(v=5.0)
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v05.png'), dpi=300)
+
+axes = model_with_rider.plot_mode_simulations(v=10.0)
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v10.png'), dpi=300)

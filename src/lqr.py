@@ -7,6 +7,7 @@ import numpy as np
 
 from data import bike_with_rider
 from model import SteerControlModel
+from utils import find_uncontrollable_points
 
 SCRIPT_PATH = os.path.realpath(__file__)
 SRC_DIR = os.path.dirname(SCRIPT_PATH)
@@ -19,6 +20,8 @@ if not os.path.exists(FIG_DIR):
 parameter_set = Meijaard2007ParameterSet(bike_with_rider, True)
 model = SteerControlModel(parameter_set)
 
+points = find_uncontrollable_points(model)
+
 speeds = np.linspace(0.0, 10.0, num=1000)
 gains = {'kphi': np.empty_like(speeds),
          'kphidot': np.empty_like(speeds),
@@ -26,7 +29,7 @@ gains = {'kphi': np.empty_like(speeds),
          'kdeltadot': np.empty_like(speeds)}
 ctrb_mats = []
 Q = np.eye(4)
-#Q = np.diag([1.0, 0.5, 10.0, 0.5])
+# Q = np.diag([1.0, 0.5, 10.0, 0.5])
 for i, speed in enumerate(speeds):
     A, B = model.form_state_space_matrices(v=speed)
     B_delta = B[:, 1, np.newaxis]  # shape(4,1)
@@ -79,31 +82,17 @@ fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v10.png'), dpi=300)
 
 fig, axes = plt.subplots(4, 1, sharex=True)
 for i, (k, v) in enumerate(gains.items()):
+    for point in points:
+        axes[i].axvline(point, color='black')
     axes[i].plot(speeds, v)
     axes[i].set_ylabel(k)
-    axes[i].set_ylim((-100.0, 100.0))
+    #axes[i].set_ylim((-1000.0, 1000.0))
 fig.savefig(os.path.join(FIG_DIR, 'lqr-gains.png'), dpi=300)
 
 speeds = np.linspace(0.0, 10.0, num=1000)
-betas = np.rad2deg(model.calc_modal_controllability(v=speeds))
-#betas[betas > 90.0] = 180.0 - betas[betas > 90.0]
-fig, axes = plt.subplots(*betas[0].shape, sharex=True, sharey=True)
-axes[0, 0].plot(speeds, betas[:, 0, 0])
-axes[0, 1].plot(speeds, betas[:, 0, 1])
-axes[1, 0].plot(speeds, betas[:, 1, 0])
-axes[1, 1].plot(speeds, betas[:, 1, 1])
-axes[2, 0].plot(speeds, betas[:, 2, 0])
-axes[2, 1].plot(speeds, betas[:, 2, 1])
-axes[3, 0].plot(speeds, betas[:, 3, 0])
-axes[3, 1].plot(speeds, betas[:, 3, 1])
-#fig, ax = plt.subplots()
-#ax.plot(speeds, betas[:, 0, 0], '.')
-#ax.plot(speeds, betas[:, 0, 1], '.')
-#ax.plot(speeds, betas[:, 1, 0], '.')
-#ax.plot(speeds, betas[:, 1, 1], '.')
-#ax.plot(speeds, betas[:, 2, 0], '.')
-#ax.plot(speeds, betas[:, 2, 1], '.')
-#ax.plot(speeds, betas[:, 3, 0], '.')
-#ax.plot(speeds, betas[:, 3, 1], '.')
-#ax.set_ylim((0.0, 90.0))
+axes = model.plot_modal_controllability(v=speeds)
+for ax in axes.flatten():
+    for point in points:
+        ax.axvline(point, color='black')
+fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
