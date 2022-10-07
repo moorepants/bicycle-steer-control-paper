@@ -20,18 +20,6 @@ if not os.path.exists(FIG_DIR):
 parameter_set = Meijaard2007ParameterSet(bike_with_rider, True)
 model = SteerControlModel(parameter_set)
 
-def calc_det_control(v):
-    A, B = model.form_state_space_matrices(v=v)
-    # TODO : This squeeze shouldn't be necessary.
-    A, B, = np.squeeze(A), np.squeeze(B)
-    B_delta = B[:, 1, np.newaxis]  # shape(4,1)
-    C = ct.ctrb(A, B_delta)
-    return np.linalg.det(C)
-
-
-for v in np.linspace(0.0, 10.0, num=20):
-    print(spo.fsolve(calc_det_control, v))
-
 speeds = np.linspace(0.0, 10.0, num=1000)
 gain_arrays = {'kphi': [], 'kphidot': [], 'kdelta': [], 'kdeltadot': []}
 ctrb_mats = []
