@@ -4,7 +4,6 @@ from bicycleparameters.parameter_sets import Meijaard2007ParameterSet
 import control as ct
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.optimize as spo
 
 from data import bike_with_rider
 from model import SteerControlModel
@@ -21,45 +20,69 @@ parameter_set = Meijaard2007ParameterSet(bike_with_rider, True)
 model = SteerControlModel(parameter_set)
 
 speeds = np.linspace(0.0, 10.0, num=1000)
-gain_arrays = {'kphi': [], 'kphidot': [], 'kdelta': [], 'kdeltadot': []}
+gains = {'kphi': np.empty_like(speeds),
+         'kphidot': np.empty_like(speeds),
+         'kdelta': np.empty_like(speeds),
+         'kdeltadot': np.empty_like(speeds)}
 ctrb_mats = []
-R = np.array([1.0])
 Q = np.eye(4)
 #Q = np.diag([1.0, 0.5, 10.0, 0.5])
 for i, speed in enumerate(speeds):
     A, B = model.form_state_space_matrices(v=speed)
     B_delta = B[:, 1, np.newaxis]  # shape(4,1)
-    C = ct.ctrb(A, B_delta)
-    ctrb_mats.append(np.linalg.matrix_rank(C))
-    #_, evals[i], K = ct.care(A, B_delta, Q)
+    ctrb_mats.append(ct.ctrb(A, B_delta))
     _, _, K = ct.care(A, B_delta, Q)
     K = K.squeeze()
-    gain_arrays['kphi'].append(K[0])
-    gain_arrays['kdelta'].append(K[1])
-    gain_arrays['kphidot'].append(K[2])
-    gain_arrays['kdeltadot'].append(K[3])
-gain_arrays['kphi'] = np.array(gain_arrays['kphi'])
-gain_arrays['kdelta'] = np.array(gain_arrays['kdelta'])
-gain_arrays['kphidot'] = np.array(gain_arrays['kphidot'])
-gain_arrays['kdeltadot'] = np.array(gain_arrays['kdeltadot'])
-
-idxs = [0, 250, 500, 750, 999]
-ax = model.plot_eigenvectors(v=speeds[idxs],
-                             kphi=gain_arrays['kphi'][idxs],
-                             kdelta=gain_arrays['kdelta'][idxs],
-                             kphidot=gain_arrays['kphidot'][idxs],
-                             kdeltadot=gain_arrays['kdeltadot'][idxs])
+    gains['kphi'][i] = K[0]
+    gains['kdelta'][i] = K[1]
+    gains['kphidot'][i] = K[2]
+    gains['kdeltadot'][i] = K[3]
 
 fig, ax = plt.subplots()
 ax = model.plot_eigenvalue_parts(ax=ax, colors=4*['C0'], v=speeds)
-model.plot_eigenvalue_parts(ax=ax, colors=4*['C1'], v=speeds, **gain_arrays)
+model.plot_eigenvalue_parts(ax=ax, colors=4*['C1'], v=speeds, **gains)
 fig.savefig(os.path.join(FIG_DIR, 'lqr-eig.png'), dpi=300)
 
+idxs = [0, 250, 500, 750, 999]
+axes = model.plot_eigenvectors(v=speeds[idxs],
+                               kphi=gains['kphi'][idxs],
+                               kdelta=gains['kdelta'][idxs],
+                               kphidot=gains['kphidot'][idxs],
+                               kdeltadot=gains['kdeltadot'][idxs])
+
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-evec.png'), dpi=300)
+
+axes = model.plot_mode_simulations(v=speeds[idxs[0]],
+                                   kphi=gains['kphi'][idxs[0]],
+                                   kdelta=gains['kdelta'][idxs[0]],
+                                   kphidot=gains['kphidot'][idxs[0]],
+                                   kdeltadot=gains['kdeltadot'][idxs[0]])
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v00.png'), dpi=300)
+
+axes = model.plot_mode_simulations(v=speeds[idxs[2]],
+                                   kphi=gains['kphi'][idxs[2]],
+                                   kdelta=gains['kdelta'][idxs[2]],
+                                   kphidot=gains['kphidot'][idxs[2]],
+                                   kdeltadot=gains['kdeltadot'][idxs[2]])
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v05.png'), dpi=300)
+
+axes = model.plot_mode_simulations(v=speeds[idxs[4]],
+                                   kphi=gains['kphi'][idxs[4]],
+                                   kdelta=gains['kdelta'][idxs[4]],
+                                   kphidot=gains['kphidot'][idxs[4]],
+                                   kdeltadot=gains['kdeltadot'][idxs[4]])
+fig = axes[0, 0].figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v10.png'), dpi=300)
+
 fig, axes = plt.subplots(4, 1, sharex=True)
-axes[0].plot(speeds, gain_arrays['kphi'])
-axes[1].plot(speeds, gain_arrays['kdelta'])
-axes[2].plot(speeds, gain_arrays['kphidot'])
-axes[3].plot(speeds, gain_arrays['kdeltadot'])
+for i, (k, v) in enumerate(gains.items()):
+    axes[i].plot(speeds, v)
+    axes[i].set_ylabel(k)
+    axes[i].set_ylim((-100.0, 100.0))
+fig.savefig(os.path.join(FIG_DIR, 'lqr-gains.png'), dpi=300)
 
 speeds = np.linspace(0.0, 10.0, num=1000)
 betas = np.rad2deg(model.calc_modal_controllability(v=speeds))
@@ -84,5 +107,3 @@ axes[3, 1].plot(speeds, betas[:, 3, 1])
 #ax.plot(speeds, betas[:, 3, 1], '.')
 #ax.set_ylim((0.0, 90.0))
 fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
-
-plt.show()

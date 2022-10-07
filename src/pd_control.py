@@ -22,7 +22,7 @@ model = SteerControlModel(parameter_set)
 # Figure 1: Plot the real & imaginary eigenvalue parts as a function of speed
 # for a series of roll derivative control gains.
 cmap = mpl.colormaps['viridis']
-gains = [0.0, -1.0, -5.0, -10.0, -50.0, -100.0, -500.0]  # , -1000.0, -5000.0]
+gains = [0.0, -5.0, -10.0, -50.0, -100.0, -500.0]  # , -1000.0, -5000.0]
 color_vals = np.linspace(0.2, 1.0, num=len(gains))
 
 fig, ax = plt.subplots()
