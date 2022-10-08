@@ -96,3 +96,17 @@ for ax in axes.flatten():
         ax.axvline(point, color='black')
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
+
+
+idx = 250
+times = np.linspace(0.0, 10.0, num=1000)
+def controller(t, x, par):
+    K = np.array([[0.0, 0.0, 0.0, 0.0],
+                  [gains['kphi'][idx], gains['kdelta'][idx],
+                   gains['kphidot'][idx], gains['kdeltadot'][idx]]])
+    return -K@x
+x0 = np.deg2rad([5.0, -10.0, 0.0, 0.0])
+axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
+fig = axes[0].figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr_simulation.png'),
+            dpi=300)

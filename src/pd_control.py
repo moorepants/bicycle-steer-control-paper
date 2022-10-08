@@ -82,3 +82,15 @@ fig, ax = plt.subplots()
 ax = model.plot_eigenvalue_parts(ax=ax, colors=4*['grey'], v=speeds)
 ax = model.plot_eigenvalue_parts(ax=ax, v=speeds, kphi=kphis, kphidot=kphidots)
 fig.savefig(os.path.join(FIG_DIR, 'pd-eigenvalues.png'), dpi=300)
+
+idx = 100
+times = np.linspace(0.0, 10.0, num=1000)
+def controller(t, x, par):
+    K = np.array([[0.0, 0.0, 0.0, 0.0],
+                  [kphis[idx], 0.0, kphidots[idx], 0.0]])
+    return -K@x
+x0 = np.deg2rad([5.0, -10.0, 0.0, 0.0])
+axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
+fig = axes[0].figure
+fig.savefig(os.path.join(FIG_DIR, 'pd_simulation.png'),
+            dpi=300)
