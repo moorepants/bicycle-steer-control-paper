@@ -4,6 +4,8 @@ from bicycleparameters.parameter_sets import Meijaard2007ParameterSet
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.integrate as spi
+import scipy.optimize as spo
 
 from data import bike_with_rider
 from model import SteerControlModel
@@ -51,3 +53,34 @@ axes = model.plot_eigenvectors(kphidot=-50.0,
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'roll-rate-gain-evec-effect.png'),
             dpi=300)
+
+
+def quadratic_regulator(gains, speed):
+    kphi, kphidot = gains
+    A, B = model.form_state_space_matrices(v=speed)
+    K = np.array([[0.0, 0.0, 0.0, 0.0],
+                  [kphi, 0.0, kphidot, 0.0]])
+    times = np.linspace(0.0, 10.0, num=1000)
+    sim_res = spi.solve_ivp(lambda t, x: (A - B@K)@x,
+                            (times[0], times[-1]),
+                            np.deg2rad([10.0, -10.0, 0.0, 0.0]),
+                            t_eval=times)
+    x = sim_res.y
+    u = -K@x
+    J = np.sum(x.T@np.eye(4)@x + u.T@np.eye(2)@u)
+    return J
+
+
+kphis, kphidots = [], []
+speeds = np.linspace(1.0, 10.0, num=20)
+for speed in speeds:
+    if speed < 5.0:
+        guess = (0.0, -100.0)
+    else:
+        guess = (-10.0, 0.0)
+    opt_res = spo.minimize(quadratic_regulator, guess, args=(speed,),
+                           method='CG')
+    kphis.append(opt_res.x[0])
+    kphidots.append(opt_res.x[1])
+
+model.plot_eigenvalue_parts(v=speeds, kphi=kphis, kphidot=kphidots)
