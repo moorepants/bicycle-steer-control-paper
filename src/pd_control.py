@@ -72,10 +72,13 @@ ax.plot(speeds, f(speeds, *kphi_pars))
 kphidot_pars, _ = spo.curve_fit(f, speeds, kphidots, p0=[-30, -2, -0.1])
 ax.plot(speeds, f(speeds, *kphidot_pars))
 print(kphidot_pars)
+fig.savefig(os.path.join(FIG_DIR, 'pd-gains-vs-speed.png'), dpi=300)
 
 speeds = np.linspace(0.0, 10.0, num=1000)
 kphis = f(speeds, *kphi_pars) - 1
 kphidots = f(speeds, *kphidot_pars)
 
-ax = model.plot_eigenvalue_parts(v=speeds, kphi=kphis, kphidot=kphidots)
-ax = model.plot_eigenvalue_parts(ax=ax, colors=4*['black'], v=speeds)
+fig, ax = plt.subplots()
+ax = model.plot_eigenvalue_parts(ax=ax, colors=4*['grey'], v=speeds)
+ax = model.plot_eigenvalue_parts(ax=ax, v=speeds, kphi=kphis, kphidot=kphidots)
+fig.savefig(os.path.join(FIG_DIR, 'pd-eigenvalues.png'), dpi=300)
