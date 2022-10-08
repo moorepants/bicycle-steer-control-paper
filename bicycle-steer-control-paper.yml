@@ -1,7 +1,10 @@
 name: bicycle-steer-control-paper
 dependencies:
+  - control
   - dynamicisttoolkit
   - ipython
+  - jupyter
+  - jupyterlab
   - matplotlib
   - numpy
   - pandas
@@ -10,4 +13,3 @@ dependencies:
   - scipy
   - uncertainties
   - yeadon
-  - control
