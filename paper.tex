@@ -35,6 +35,8 @@ steer rate. Steer angle sensor gives steer angle. Roll angle must be estimated.
 Single motor that applies a torque between the rear frame and the
 handlebars/fork.
 
+A full state feedback takes this form:
+
 \begin{align}
   \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
   \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix} \\
@@ -44,6 +46,9 @@ handlebars/fork.
   \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} + \mathbf{B} \left[ T_{\delta,\textrm{human}} \right] \\
   \mathbf{K} = \begin{bmatrix} k_\phi & k_{\dot{\phi}} & 0 & 0 \end{bmatrix}
 \end{align}
+
+Note that the rider still applies steer torque through the same B matrix and
+any roll disturbances also through same B matrix.
 
 \section{Proportional Dervivative Roll Control}
 
