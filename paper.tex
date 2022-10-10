@@ -25,6 +25,26 @@ speeds in the range \([0, 10]\) that are uncontrollable.
   \label{fig:uncontrolled-eigenvalues-with-rider}
 \end{figure}
 
+I have no idea why this model is uncontrollable at these speeds.
+
+\section{Stabilization with Roll and Steer Feedback}
+
+One IMU on the handlebars and one on the rear frame easily gives: roll rate and
+steer rate. Steer angle sensor gives steer angle. Roll angle must be estimated.
+
+Single motor that applies a torque between the rear frame and the
+handlebars/fork.
+
+\begin{align}
+  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
+  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix} \\
+  \bar{u} = \left[ T_\delta \right] \\
+  T_\delta = T_{\delta,\textrm{human}} + T_{\delta,\textrm{robot}} \\
+  T_{\delta,\textrm{robot}} = k_\phi \phi + k_{\dot{\phi}} \dot{\phi} \\
+  \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} + \mathbf{B} \left[ T_{\delta,\textrm{human}} \right] \\
+  \mathbf{K} = \begin{bmatrix} k_\phi & k_{\dot{\phi}} & 0 & 0 \end{bmatrix}
+\end{align}
+
 \section{Proportional Dervivative Roll Control}
 
 Proportional Derivative Roll Control
@@ -41,15 +61,6 @@ Proportional Derivative Roll Control
     feedback help?
 \end{itemize}
 
-\begin{align}
-  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
-  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix} \\
-  \bar{u} = \left[ T_\delta \right] \\
-  T_\delta = T_{\delta,\textrm{human}} + T_{\delta,\textrm{robot}} \\
-  T_{\delta,\textrm{robot}} = k_\phi \phi + k_{\dot{\phi}} \dot{\phi} \\
-  \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} + \mathbf{B} \left[ T_{\delta,\textrm{human}} \right] \\
-  \mathbf{K} = \begin{bmatrix} k_\phi & k_{\dot{\phi}} & 0 & 0 \end{bmatrix}
-\end{align}
 
 Figure: plot the real parts of the eigenvalues vs of A-BK for inf < kphidot <
 inf with some intervals of k. We coudl plot strictly the largest real

@@ -35,10 +35,10 @@ jobs:
           make
           mkdir output/
           mv paper.pdf output/
-    - name: Deploy the website
-      if: ${{ github.event_name == 'push' }}
-      run: |
-        git config --global user.name "Github Actions"
-        git config --global user.email moorepants@users.noreply.github.com
-        git remote add deploy "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorepants/bicycle-steer-control-paper.git"
-        ghp-import --no-jekyll --no-history -r deploy -m "Updated via Github Actions [skip ci]" -p output
+      - name: Deploy the website
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          git config --global user.name "Github Actions"
+          git config --global user.email moorepants@users.noreply.github.com
+          git remote add deploy "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moorepants/bicycle-steer-control-paper.git"
+          ghp-import --no-jekyll --no-history -r deploy -m "Updated via Github Actions [skip ci]" -p output
