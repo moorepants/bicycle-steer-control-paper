@@ -88,9 +88,12 @@ times = np.linspace(0.0, 10.0, num=1000)
 def controller(t, x, par):
     K = np.array([[0.0, 0.0, 0.0, 0.0],
                   [kphis[idx], 0.0, kphidots[idx], 0.0]])
-    return -K@x
+    torques = -K@x
+    if np.abs(torques[1]) >= 10.0:
+        torques[1] = np.sign(torques[1])*10.0
+    return torques
 x0 = np.deg2rad([5.0, -10.0, 0.0, 0.0])
 axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
 fig = axes[0].figure
-fig.savefig(os.path.join(FIG_DIR, 'pd_simulation.png'),
+fig.savefig(os.path.join(FIG_DIR, 'pd-simulation.png'),
             dpi=300)
