@@ -1,5 +1,5 @@
 pdf: paper.pdf
-paper.pdf: paper.tex figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues.png
+paper.pdf: paper.tex figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
 	pdflatex paper.tex
 figures/lqr-eig.png: src/lqr.py
 	python src/lqr.py
@@ -7,7 +7,7 @@ figures/pd-eigenvalues.png: src/pd_control.py
 	python src/pd_control.py
 figures/pole-place-v06.png: src/pole_placement.py
 	python src/pole_placement.py
-figures/uncontrolled-eigenvalues.png: src/uncontrolled.py
+figures/uncontrolled-eigenvalues-with-rider.png: src/uncontrolled.py
 	python src/uncontrolled.py
 clearpdf:
 	rm paper.pdf
