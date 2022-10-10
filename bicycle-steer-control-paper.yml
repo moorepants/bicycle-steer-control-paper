@@ -1,4 +1,6 @@
 name: bicycle-steer-control-paper
+channels:
+  - conda-forge
 dependencies:
   - control
   - dynamicisttoolkit
