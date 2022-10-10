@@ -1,0 +1,33 @@
+# based on https://github.com/mamba-org/provision-with-micromamba
+name: build
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: "3.10"
+    name: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: install mamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: bicycle-steer-control-paper.yml
+          environment-name: bicycle-steer-control-paper
+          extra-specs: |
+            python=${{ matrix.python-version }}
+      - name: Install LaTeX
+        run: sudo apt-get install -y texlive
+      - name: run tests
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          make
+          mkdir output/
+          mv paper.pdf output/

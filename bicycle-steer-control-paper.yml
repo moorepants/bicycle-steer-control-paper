@@ -2,6 +2,7 @@ name: bicycle-steer-control-paper
 dependencies:
   - control
   - dynamicisttoolkit
+  - ghp-import
   - ipython
   - jupyter
   - jupyterlab
