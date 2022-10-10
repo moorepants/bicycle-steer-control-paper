@@ -3,7 +3,7 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 
-\title{Summative Bicycle Steer Control}
+\title{Summative Robotic Bicycle Steer Control}
 
 \author{Jason K. Moore}
 \date{\today}
@@ -26,6 +26,16 @@ speeds in the range \([0, 10]\) that are uncontrollable.
 \end{figure}
 
 I have no idea why this model is uncontrollable at these speeds.
+
+I don't think this model controllability calc is correct because it isn't
+smooth and it doesn't reveal the two uncontrollable speeds.
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/modal-controllability.png}
+  \caption{Testing}
+  \label{fig:modal-controllability}
+\end{figure}
 
 \section{Stabilization with Roll and Steer Feedback}
 
@@ -66,10 +76,8 @@ Proportional Derivative Roll Control
     feedback help?
 \end{itemize}
 
-
-Figure: plot the real parts of the eigenvalues vs of A-BK for inf < kphidot <
-inf with some intervals of k. We coudl plot strictly the largest real
-eigenvalue to minimize clutter on the image.
+It is well known that at low speeds simple proportional positive feedback of
+roll rate stabilize the bicycle.
 
 \begin{figure}
   \centering
@@ -78,7 +86,32 @@ eigenvalue to minimize clutter on the image.
   \label{fig:roll-rate-eig-effect}
 \end{figure}
 
-Figure: show the gain that produces the lowest stable speed range
+Roll rate feedbac is not sufficient to stabilize the bicycle at very low speeds
+(< 0.5 m/s) and speeds where the capsize mode is unstable. But if steer rate
+and roll rate are avaiable to feedback, the bicycle can be stabilized both at
+higher speeds. Exponential functions provide a good model for gain scheduling
+with respect to speed.
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/pd-gains-vs-speed.png}
+  \caption{Testing}
+  \label{fig:pd-gains-vs-speed}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/pd-eigenvalues.png}
+  \caption{Testing}
+  \label{fig:pd-eigenvalues}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/pd_simulation.png}
+  \caption{Testing}
+  \label{fig:pd_simulation}
+\end{figure}
 
 \section{Full State Feedback}
 
@@ -91,12 +124,8 @@ kdeltadot]
 - Show that speed can't affect the rank of the controlability matrix
 (analytically)
 
-\begin{figure}
-  \centering
-  \includegraphics{figures/modal-controllability.png}
-  \caption{Testing}
-  \label{fig:modal-controllability}
-\end{figure}
+If you assume full state feedback and we drive the state to zero, an LQR
+controller can be realized at each speed. Assumed Q and R to be identity.
 
 \begin{figure}
   \centering
@@ -104,6 +133,15 @@ kdeltadot]
   \caption{Testing}
   \label{fig:lqr-eig}
 \end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/lqr-gains.png}
+  \caption{Testing}
+  \label{fig:lqr-gains}
+\end{figure}
+
+\section{What steer torques are required for normal manuvers?}
 
 \section{Effect of Electric Motor Dynamics}
 
@@ -123,8 +161,6 @@ kdeltadot]
 \section{Add human control}
 
 - Handling quality metric
-
-\section{Time varying controller gains (or as a function of speed)}
 
 \section{Is the stability deteriminal to maunerability?}
 
