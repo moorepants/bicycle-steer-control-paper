@@ -11,14 +11,17 @@
 \begin{document}
 \maketitle
 
-\section{Outline}
-
 \section{Controllability}
+
+There are speed parameter values where the linear Whipple-Carvallo bicycle
+model is uncontrollable. Solving the \(det{\mathbf{R}(v)}=0\) returns two
+speeds in the range \([0, 10]\) that are uncontrollable.
 
 \begin{figure}
   \centering
   \includegraphics{figures/uncontrolled-eigenvalues-with-rider.png}
-  \caption{Testing}
+  \caption{Real and imaginary parts of the eigenvalues as a function of speed.
+  Vertical black lines indicate uncontrollable dynamics.}
   \label{fig:uncontrolled-eigenvalues-with-rider}
 \end{figure}
 
