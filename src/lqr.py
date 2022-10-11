@@ -89,15 +89,6 @@ for i, (k, v) in enumerate(gains.items()):
     #axes[i].set_ylim((-1000.0, 1000.0))
 fig.savefig(os.path.join(FIG_DIR, 'lqr-gains.png'), dpi=300)
 
-speeds = np.linspace(0.0, 10.0, num=1000)
-axes = model.plot_modal_controllability(v=speeds)
-for ax in axes.flatten():
-    for point in points:
-        ax.axvline(point, color='black')
-fig = axes[0, 0].figure
-fig.savefig(os.path.join(FIG_DIR, 'modal-controllability.png'), dpi=300)
-
-
 idx = 100
 times = np.linspace(0.0, 10.0, num=1000)
 def controller(t, x, par):
