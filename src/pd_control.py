@@ -94,6 +94,7 @@ def controller(t, x, par):
     return torques
 x0 = np.deg2rad([5.0, -10.0, 0.0, 0.0])
 axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
+axes[0].set_title('Speed = {:1.2f}'.format(speeds[idx]))
 fig = axes[0].figure
 fig.savefig(os.path.join(FIG_DIR, 'pd-simulation.png'),
             dpi=300)

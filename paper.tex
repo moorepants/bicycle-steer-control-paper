@@ -13,9 +13,20 @@
 
 \section{Controllability}
 
+The linear Whipple-Carvallo model can be described by the state space
+equations:
+
+\begin{align}
+  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
+  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta}
+  \end{bmatrix} \\
+  \bar{u} = \begin{bmatrix} T_{\phi} \\ T_{\delta} \end{bmatrix}
+\end{align}
+
+The controllability matrix \(\mathbf{R}\) can be formed for the steer input.
 There are speed parameter values where the linear Whipple-Carvallo bicycle
-model is uncontrollable. Solving the \(det{\mathbf{R}(v)}=0\) returns two
-speeds in the range \([0, 10]\) that are uncontrollable.
+model is uncontrollable. Solving the \(det(\mathbf{R}(v))=0\) returns two
+speeds in the range \([0, 10]\) m/s that are uncontrollable.
 
 \begin{figure}
   \centering
@@ -27,8 +38,8 @@ speeds in the range \([0, 10]\) that are uncontrollable.
 
 I have no idea why this model is uncontrollable at these speeds.
 
-I don't think this model controllability calc is correct because it isn't
-smooth and it doesn't reveal the two uncontrollable speeds.
+We can also look at the modal controllability to see the degree of
+controllability Fig.~\ref{fig:modal-controllability}.
 
 \begin{figure}
   \centering
@@ -36,6 +47,9 @@ smooth and it doesn't reveal the two uncontrollable speeds.
   \caption{Testing}
   \label{fig:modal-controllability}
 \end{figure}
+
+I don't think this model controllability calc is correct because it isn't
+smooth and it doesn't reveal the two uncontrollable speeds.
 
 \section{Stabilization with Roll and Steer Feedback}
 
@@ -139,6 +153,13 @@ controller can be realized at each speed. Assumed Q and R to be identity.
   \includegraphics{figures/lqr-gains.png}
   \caption{Testing}
   \label{fig:lqr-gains}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{figures/lqr-simulation.png}
+  \caption{Testing}
+  \label{fig:lqr-simulation}
 \end{figure}
 
 \section{What steer torques are required for normal manuvers?}
