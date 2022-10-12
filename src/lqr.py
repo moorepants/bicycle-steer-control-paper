@@ -103,10 +103,10 @@ def controller(t, x, par):
                   [gains['kphi'][idx], gains['kdelta'][idx],
                    gains['kphidot'][idx], gains['kdeltadot'][idx]]])
     torques = -K@x
-    if np.abs(torques[1]) >= 10.0:
-        torques[1] = np.sign(torques[1])*10.0
+    #if np.abs(torques[1]) >= 10.0:
+        #torques[1] = np.sign(torques[1])*10.0
     return torques
-x0 = np.deg2rad([5.0, -10.0, 0.0, 0.0])
+x0 = np.deg2rad([10.0, -10.0, 0.0, 0.0])
 axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
 axes[0].set_title('Speed = {:1.2f}'.format(speeds[idx]))
 fig = axes[0].figure
