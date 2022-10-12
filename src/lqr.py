@@ -86,6 +86,7 @@ for i, (k, v) in enumerate(gains.items()):
         axes[i].axvline(point, color='black')
     axes[i].plot(speeds, v)
     axes[i].set_ylabel(k)
+    axes[i].grid()
     #axes[i].set_ylim((-1000.0, 1000.0))
 fig.savefig(os.path.join(FIG_DIR, 'lqr-gains.png'), dpi=300)
 
