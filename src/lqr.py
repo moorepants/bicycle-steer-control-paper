@@ -22,6 +22,9 @@ model = SteerControlModel(parameter_set)
 
 points = find_uncontrollable_points(model)
 
+max_torque = 10.0
+max_states = 0.20*np.deg2rad([20.0, 100.0, 45.0, 300.0])
+
 speeds = np.linspace(0.0, 10.0, num=1000)
 gains = {'kphi': np.empty_like(speeds),
          'kphidot': np.empty_like(speeds),
@@ -35,6 +38,9 @@ for i, speed in enumerate(speeds):
     B_delta = B[:, 1, np.newaxis]  # shape(4,1)
     ctrb_mats.append(ct.ctrb(A, B_delta))
     _, _, K = ct.care(A, B_delta, Q)
+    # gains can't produce too much torque!
+    while np.abs(K@max_states) > max_torque:
+        K = 0.95*K
     K = K.squeeze()
     gains['kphi'][i] = K[0]
     gains['kdelta'][i] = K[1]
