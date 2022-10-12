@@ -75,14 +75,15 @@ fig.savefig(os.path.join(FIG_DIR,
                          'uncontrolled-eigenvectors-without-rider.png'),
             dpi=300)
 
-axes = model_with_rider.plot_mode_simulations(v=0.0)
+times = np.linspace(0.0, 10.0)
+axes = model_with_rider.plot_mode_simulations(times=times, v=0.0)
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v00.png'), dpi=300)
 
-axes = model_with_rider.plot_mode_simulations(v=5.0)
+axes = model_with_rider.plot_mode_simulations(times=times, v=5.0)
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v05.png'), dpi=300)
 
-axes = model_with_rider.plot_mode_simulations(v=10.0)
+axes = model_with_rider.plot_mode_simulations(times=times, v=10.0)
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-mode-sims-v10.png'), dpi=300)

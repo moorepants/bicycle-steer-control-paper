@@ -62,7 +62,9 @@ axes = model.plot_eigenvectors(v=speeds[idxs],
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'lqr-evec.png'), dpi=300)
 
-axes = model.plot_mode_simulations(v=speeds[idxs[0]],
+times = np.linspace(0.0, 10.0, num=1000)
+axes = model.plot_mode_simulations(times=times,
+                                   v=speeds[idxs[0]],
                                    kphi=gains['kphi'][idxs[0]],
                                    kdelta=gains['kdelta'][idxs[0]],
                                    kphidot=gains['kphidot'][idxs[0]],
@@ -70,7 +72,8 @@ axes = model.plot_mode_simulations(v=speeds[idxs[0]],
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v00.png'), dpi=300)
 
-axes = model.plot_mode_simulations(v=speeds[idxs[2]],
+axes = model.plot_mode_simulations(times=times,
+                                   v=speeds[idxs[2]],
                                    kphi=gains['kphi'][idxs[2]],
                                    kdelta=gains['kdelta'][idxs[2]],
                                    kphidot=gains['kphidot'][idxs[2]],
@@ -78,7 +81,8 @@ axes = model.plot_mode_simulations(v=speeds[idxs[2]],
 fig = axes[0, 0].figure
 fig.savefig(os.path.join(FIG_DIR, 'lqr-mode-sims-v05.png'), dpi=300)
 
-axes = model.plot_mode_simulations(v=speeds[idxs[4]],
+axes = model.plot_mode_simulations(times=times,
+                                   v=speeds[idxs[4]],
                                    kphi=gains['kphi'][idxs[4]],
                                    kdelta=gains['kdelta'][idxs[4]],
                                    kphidot=gains['kphidot'][idxs[4]],
