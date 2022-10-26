@@ -102,7 +102,7 @@ fig.savefig(os.path.join(FIG_DIR, 'lqr-gains.png'), dpi=300)
 
 idx = 100
 times = np.linspace(0.0, 10.0, num=1000)
-def controller(t, x, par):
+def controller(t, x):
     K = np.array([[0.0, 0.0, 0.0, 0.0],
                   [gains['kphi'][idx], gains['kdelta'][idx],
                    gains['kphidot'][idx], gains['kdeltadot'][idx]]])

@@ -48,7 +48,7 @@ fig.savefig(os.path.join(FIG_DIR, 'uncontrolled-eigenvectors-with-rider.png'),
             dpi=300)
 
 speeds = np.linspace(0.0, 10.0, num=1000)
-axes = model_with_rider.plot_modal_controllability(acute=True, v=speeds)
+axes = model_with_rider._plot_modal_controllability(acute=True, v=speeds)
 for ax in axes[:, 1]:
     for point in points:
         ax.axvline(point, color='black')
