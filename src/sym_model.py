@@ -84,9 +84,9 @@ def benchmark_par_to_canonical(p):
             * p['rF']**2)
     ITxz = (p['IBxz'] + p['IHxz'] - p['mB'] * p['xB'] * p['zB'] -
             p['mH'] * p['xH'] * p['zH'] + p['mF'] * p['w'] * p['rF'])
-    p['IRzz'] = p['IRxx']
-    p['IFzz'] = p['IFxx']
-    ITzz = (p['IRzz'] + p['IBzz'] + p['IHzz'] + p['IFzz'] +
+    # p['IRzz'] = p['IRxx']
+    # p['IFzz'] = p['IFxx']
+    ITzz = (p['IRxx'] + p['IBzz'] + p['IHzz'] + p['IFxx'] +
             p['mB'] * p['xB']**2 + p['mH'] * p['xH']**2 + p['mF'] * p['w']**2)
 
     mA = p['mH'] + p['mF']
@@ -97,7 +97,7 @@ def benchmark_par_to_canonical(p):
             p['mF'] * (p['rF'] + zA)**2)
     IAxz = (p['IHxz'] - p['mH'] * (p['xH'] - xA) * (p['zH'] - zA) + p['mF'] *
             (p['w'] - xA) * (p['rF'] + zA))
-    IAzz = (p['IHzz'] + p['IFzz'] + p['mH'] * (p['xH'] - xA)**2 + p['mF'] *
+    IAzz = (p['IHzz'] + p['IFxx'] + p['mH'] * (p['xH'] - xA)**2 + p['mF'] *
             (p['w'] - xA)**2)
     uA = (xA - p['w'] - p['c']) * sm.cos(p['lam']) - zA * sm.sin(p['lam'])
     IAll = (mA * uA**2 + IAxx * sm.sin(p['lam'])**2 +
