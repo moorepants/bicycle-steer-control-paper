@@ -11,15 +11,25 @@
 \begin{document}
 \maketitle
 
-\section{Controllability}
+\section{Introduction}
 
-\begin{figure}
-  \centering
-  \includegraphics{figures/uncontrolled-with-rider-geometry.png}
-  \caption{geometry}
-  \label{fig:uncontrolled-with-rider-geometry}
-\end{figure}
+The purpose of the paper is to try to answer this question:
 
+Given a bicycle that has a motor (with power, torque, speed, bandwidth limits)
+which can apply a torque between the rear and front frames and a set of sensors
+that can give good measurements or estimates of the bicycle's steer angle,
+steering rate, roll angle, and rolling rate what closed loop dynamics and
+motion are possible and how might a rider controlling this bicycle in a
+summative fashion find the behavior?
+
+Some other notes:
+
+\begin{itemize}
+  \item we only care about the lateral dynamics and handling qualities of
+  \item we will only explore mathematical and computational models
+\end{itemize}
+
+\section{Model}
 
 The linear Whipple-Carvallo model can be described by the state space
 equations:
@@ -31,27 +41,37 @@ equations:
   \bar{u} = \begin{bmatrix} T_{\phi} \\ T_{\delta} \end{bmatrix}
 \end{align}
 
-The controllability matrix \(\mathbf{R}\) can be formed for the steer input.
-There are speed parameter values where the linear Whipple-Carvallo bicycle
-model is uncontrollable. Solving the \(det(\mathbf{R}(v))=0\) returns two
-speeds in the range \([0, 10]\) m/s that are uncontrollable.
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/uncontrolled-with-rider-geometry.png}
+  \caption{Geometry, mass, and inertia of the bicycle-rider system.}
+  \label{fig:uncontrolled-with-rider-geometry}
+\end{figure}
+
+\section{Controllability}
+
+The controllability matrix \(\mathbf{C}\) can be formed for the steer input,
+\(T_\delta\). There are speed parameter values where the linear
+Whipple-Carvallo bicycle model is uncontrollable. Solving the
+\(det(\mathbf{C}(v))=0\) returns two speeds in the range \([0, 10]\) m/s that
+are uncontrollable.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/uncontrolled-eigenvalues-with-rider.png}
+  \includegraphics[width=\columnwidth]{figures/uncontrolled-eigenvalues-with-rider.png}
   \caption{Real and imaginary parts of the eigenvalues as a function of speed.
   Vertical black lines indicate uncontrollable dynamics.}
   \label{fig:uncontrolled-eigenvalues-with-rider}
 \end{figure}
 
-I have no idea why this model is uncontrollable at these speeds.
+I have no idea why this model is uncontrollable at these specific speeds.
 
 We can also look at the modal controllability to see the degree of
 controllability Fig.~\ref{fig:modal-controllability}.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/modal-controllability.png}
+  \includegraphics[width=\columnwidth]{figures/modal-controllability.png}
   \caption{Testing}
   \label{fig:modal-controllability}
 \end{figure}
@@ -67,20 +87,43 @@ steer rate. Steer angle sensor gives steer angle. Roll angle must be estimated.
 Single motor that applies a torque between the rear frame and the
 handlebars/fork.
 
-A full state feedback takes this form:
+Assume that the torque between the two frames is the sum of the motor and the
+rider:
 
 \begin{align}
-  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
-  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix} \\
-  \bar{u} = \left[ T_\delta \right] \\
-  T_\delta = T_{\delta,\textrm{human}} + T_{\delta,\textrm{robot}} \\
-  T_{\delta,\textrm{robot}} = k_\phi \phi + k_{\dot{\phi}} \dot{\phi} \\
-  \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} + \mathbf{B} \left[ T_{\delta,\textrm{human}} \right] \\
-  \mathbf{K} = \begin{bmatrix} k_\phi & k_{\dot{\phi}} & 0 & 0 \end{bmatrix}
+  T_\delta = T_{\delta,\textrm{human}} + T_{\delta,\textrm{motor}}
 \end{align}
 
-Note that the rider still applies steer torque through the same B matrix and
-any roll disturbances also through same B matrix.
+The motor is driven by a full state feedback controller:
+
+\begin{align}
+  T_{\delta,\textrm{motor}} =
+  k_\phi \phi +
+  k_\delta \delta +
+  k_{\dot{\phi}} \dot{\phi} +
+  k_{\dot{\delta}} \dot{\delta}
+\end{align}
+
+The motor closed loop dynamics is then:
+
+\begin{align}
+  \dot{\bar{x}} = \left( \mathbf{A} - \mathbf{B} \mathbf{K} \right) \bar{x} +
+  \mathbf{B} \left[ T_\phi \quad T_{\delta,\textrm{human}} \right]^T \\
+\end{align}
+
+where
+
+\begin{align}
+  \mathbf{K} =
+  \begin{bmatrix}
+    0 & 0 & 0 & 0 \\
+    k_\phi & k_\delta & k_{\dot{\phi}} & k_{\dot{\delta}}
+  \end{bmatrix}
+\end{align}
+
+Note that the rider still applies steer torque through the original B matrix
+and any roll disturbances also through same B matrix. The human controlled
+dynamics can be manipulated by changing the motor controller gains.
 
 \section{Proportional Dervivative Roll Control}
 
@@ -99,98 +142,124 @@ Proportional Derivative Roll Control
 \end{itemize}
 
 It is well known that at low speeds simple proportional positive feedback of
-roll rate stabilize the bicycle.
+roll rate stabilize the bicycle. This is positive roll derivative feedback.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/roll-rate-eig-effect.png}
-  \caption{Testing}
+  \includegraphics[width=\columnwidth]{figures/roll-rate-eig-effect.png}
+  \caption{Effect on the motor controlled closed loop dynamics with changing
+  \(k_{\dot{\phi}}\). Blue to yellow varies the gain from zero to a large
+  value.}
   \label{fig:roll-rate-eig-effect}
 \end{figure}
 
-Roll rate feedbac is not sufficient to stabilize the bicycle at very low speeds
-(< 0.5 m/s) and speeds where the capsize mode is unstable. But if steer rate
-and roll rate are avaiable to feedback, the bicycle can be stabilized both at
-higher speeds. Exponential functions provide a good model for gain scheduling
-with respect to speed.
+Roll rate feedback alone is not sufficient to stabilize the bicycle at very low
+speeds (< 0.5 m/s), even with infinite gains, and speeds where the capsize mode
+is unstable. But if roll angle and roll rate are available to feedback, the
+bicycle can also be stabilized at the higher speeds. If you gain schedule roll
+angle and roll rate feedback to both stabilize sufficiently while minimizing
+the weave frequency exponential functions provide a good model for gain
+scheduling with respect to speed.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/pd-gains-vs-speed.png}
-  \caption{Testing}
+  \includegraphics[width=\columnwidth]{figures/pd-gains-vs-speed.png}
+  \caption{Exponentially scheduled roll angle and roll rate gains with respect
+  to speed.}
   \label{fig:pd-gains-vs-speed}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics{figures/pd-eigenvalues.png}
-  \caption{Testing}
-  \label{fig:pd-eigenvalues}
-\end{figure}
+The roll PD gain scheduling with respect to speed stabilizes at all speeds
+above about 0.75 m/s and retains similar dynamics except that the weave
+frequency is significantly higher \ref{fig:pd-eigenvalues}.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/pd-simulation.png}
-  \caption{Testing}
+  \includegraphics[width=\columnwidth]{figures/pd-eigenvalues.png}
+  \caption{Root locus of the eigenvalues components with respect to speed when
+  the gain scheduling in Figure \ref{fig:pd-gains-vs-speed} are applied. Grey
+  lines are the uncontrolled bicycle.}
+  \label{fig:pd-eigenvalues}
+\end{figure}
+
+At very low speeds large steer torques and steer angles are required to
+stabilize the system.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/pd-simulation.png}
+  \caption{Simulation with saturated steer torque.}
   \label{fig:pd_simulation}
 \end{figure}
 
 \section{Full State Feedback}
 
-- I could frame the whole controller as a full state feedback of essential
-bicycle state variables and then show degenerate cases. So [kphi kphidot kdelta
-kdeltadot]
-- Look at LQR solution for full state feedback and limit the rider steer torque
-- What are the achievable closed loop dynamics? (8 gains now)
-- Not sufficient to balance at zero speed (what is lowest speed?)
-- Show that speed can't affect the rank of the controlability matrix
-(analytically)
-
-If you assume full state feedback and we drive the state to zero, an LQR
-controller can be realized at each speed. Assumed Q and R to be identity.
+If you now assume full state feedback and we drive the state to zero as before,
+an LQR controller can be realized at each speed. Assumed \(\mathbf{Q}\) and
+\(\mathbf{R}\) to be identity for simplicity. I also scale the gains
+proportinally to limit the maximum torque that can be applied for some expected
+maximum motion. If you dot that, you get some LQR gain scheduling over speed.
+The required gains at the uncontrollable points go to infinity, so you
+bascially can't stabilize below the largest uncontrollable speed.
 
 \begin{figure}
   \centering
-  \includegraphics{figures/lqr-eig.png}
-  \caption{Testing}
-  \label{fig:lqr-eig}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics{figures/lqr-gains.png}
-  \caption{Testing}
+  \includegraphics[width=\columnwidth]{figures/lqr-gains.png}
+  \caption{Gain scheduled LQR gains.}
   \label{fig:lqr-gains}
 \end{figure}
 
+Using the scheduling in Figure \ref{fig:lqr-gains} give the dynamics in Figure
+\ref{fig:lqr-eig}. The LQR solution manages to stabilize the system without
+drastically changing the dynamics, in particular the weave frequency is
+unchanged. If large gains are permitted, the LQR controller theorectically can
+stabilize the bicycle at v=0 speed.
+
 \begin{figure}
   \centering
-  \includegraphics{figures/lqr-simulation.png}
+  \includegraphics[width=\columnwidth]{figures/lqr-eig.png}
+  \caption{Root locus of eigenvalue components with the LQR gain scheduling.}
+  \label{fig:lqr-eig}
+\end{figure}
+
+Here is a low speed simulation with LQR solution.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/lqr-simulation.png}
   \caption{Testing}
   \label{fig:lqr-simulation}
 \end{figure}
 
-\section{What steer torques are required for normal manuvers?}
+\section{Motor limitations}
 
-\section{Effect of Electric Motor Dynamics}
+Set bounds on steer torque, power, and even bandwith then solve for the open
+loop steer torque needed to stablize at various speeds.
 
-- Limitations in motor power and bandwidth
+Set bounds on steer torque, power, and even bandwith then solve for the open
+loop steer torque and solve for the four gains that stabilize the system with
+under maximal performance bounds.
+
+Is it of value to add a motor dynamics equation into the mix? A full state
+feedback would then require measuring motor current.
 
 \section{Can we mimic other real bicycles?}
 
-- Optimization that finds controller parameters for matching dynamics?
+Optimization that finds controller parameters for matching dynamics?
 
 \section{Comparison of the gyrobike and the steer motor}
 
-- Show how the same dynamics can be produced
-- Energy costs comparison
+Show how the same dynamics can be produced
 
-\section{How does this effect thigns with a leaning rider?}
+Energy costs comparison
 
 \section{Add human control}
 
-- Handling quality metric
+What human steer torques are required for normal manuvers? Is it higher for the
+stabilized bikes?
 
-\section{Is the stability deteriminal to maunerability?}
+Is the stability detrimental to maunerability?
+
+Handling quality metric for the gain scheduled controllers.
 
 \end{document}
