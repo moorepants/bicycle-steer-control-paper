@@ -231,6 +231,29 @@ Here is a low speed simulation with LQR solution.
   \label{fig:lqr-simulation}
 \end{figure}
 
+What do the transfer functions from human steer to roll look like when they are
+controlling the closed loop motor controlled bike? For a very low speed, there
+is a damped resonant peak around 3 rad/s which changes the way the vehicle
+feels in the human control bandwidth.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/lqr-steer-roll-bode-compare-v01.png}
+  \caption{Orange is with the motor control on, blue is without.}
+  \label{fig:lqr-steer-roll-bode-compare}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/lqr-steer-roll-bode-compare-v05.png}
+  \caption{Orange is with the motor control on, blue is without.}
+  \label{fig:lqr-steer-roll-bode-compare}
+\end{figure}
+
+Would it be better/possible to ask for the gains that make the Bode plot of
+controlled bike match the uncontrolled bike at high speeds? This would give
+matching feeling to the rider.
+
 \section{Motor limitations}
 
 Set bounds on steer torque, power, and even bandwith then solve for the open

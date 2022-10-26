@@ -112,7 +112,34 @@ def controller(t, x):
     return torques
 x0 = np.deg2rad([10.0, -10.0, 0.0, 0.0])
 axes = model.plot_simulation(times, x0, input_func=controller, v=speeds[idx])
-axes[0].set_title('Speed = {:1.2f}'.format(speeds[idx]))
+axes[0].set_title('Speed = {:1.2f} m/s'.format(speeds[idx]))
 fig = axes[0].figure
 fig.savefig(os.path.join(FIG_DIR, 'lqr-simulation.png'),
             dpi=300)
+
+
+idx = 100
+A, B = model.form_state_space_matrices(v=speeds)
+uncontrolled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+ct.bode_plot(uncontrolled, wrap_phase=True)
+A, B = model.form_state_space_matrices(v=speeds, **gains)
+controlled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+ct.bode_plot(controlled, wrap_phase=True)
+ax = plt.gca()
+ax.set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
+fig = ax.figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-steer-roll-bode-compare-v01.png'), dpi=300)
+
+
+idx = 500
+A, B = model.form_state_space_matrices(v=speeds)
+uncontrolled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+fig = plt.figure()
+ct.bode_plot(uncontrolled, wrap_phase=True)
+A, B = model.form_state_space_matrices(v=speeds, **gains)
+controlled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+ct.bode_plot(controlled, wrap_phase=True)
+ax = plt.gca()
+ax.set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
+fig = ax.figure
+fig.savefig(os.path.join(FIG_DIR, 'lqr-steer-roll-bode-compare-v05.png'), dpi=300)
