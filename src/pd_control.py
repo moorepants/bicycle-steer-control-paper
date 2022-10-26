@@ -85,7 +85,7 @@ fig.savefig(os.path.join(FIG_DIR, 'pd-eigenvalues.png'), dpi=300)
 
 idx = 100
 times = np.linspace(0.0, 10.0, num=1000)
-def controller(t, x, par):
+def controller(t, x):
     K = np.array([[0.0, 0.0, 0.0, 0.0],
                   [kphis[idx], 0.0, kphidots[idx], 0.0]])
     torques = -K@x

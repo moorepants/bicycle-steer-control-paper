@@ -15,3 +15,4 @@ clearpdf:
 	rm paper.pdf
 clean:
 	(rm -rf *.ps *.log *.dvi *.aux *.*% *.lof *.lop *.lot *.toc *.idx *.ilg *.ind *.bbl *.blg *.cpt *.out)
+	rm figures/*.png
