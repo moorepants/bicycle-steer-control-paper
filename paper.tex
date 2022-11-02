@@ -16,30 +16,31 @@ Handling}
 
 Automatic roll stabilization of single track vehicles began in earnest after
 predictive motorcycle models were developed and refined throughout the 1970s.
-Van Zytveld~\cite{Zytveld1975} was the first to attempt to stabilize a small
-motorbike with a controlled inverted pendulum that mimiced rider lean, but was
-not successful in demonstrating what his control models predicted. It was not
-until the mid 1980s in which someone sucessfully demonstrated the first an
-automatically balanced motorcycle~\cite{Ruijs1986a}. Ruijs and Pacejka showed
-that a steer torque driven by speed gain scheduled roll angle feedback
-stabilizes the capsize mode, roll rate feedback stabilizes the weave mode of a
-motorcycle, and steer angular rate feedbck stabilizes the wobble mode. This is,
-in fact, the simplest controller that can stabilize a single track vehicle
-above a minimum speed.  Many more automatically balanced single track vehicles
-have been demonstrated over the last 40 years, but none of these advancements
-have resulted in a useful commercial product. Most of these robotic bicycles
-and motorcycles desingers did not intend for a human rider to also control the
-stabilized vehicle. An automatically stabilized bicycle can be controlled by a
+Van Zytveld~\cite{Zytveld1975} seems to be the first to attempt to robotically
+stabilize a small motorbike with a controlled inverted pendulum that mimicked
+rider lean, but was not successful in demonstrating what his control model
+predicted. It was not until the mid 1980s in which someone successfully
+demonstrated an automatically balanced motorcycle~\cite{Ruijs1986a}. Ruijs and
+Pacejka showed that steer torque driven by roll angle feedback stabilizes the
+capsize mode, roll rate feedback stabilizes the weave mode of a motorcycle, and
+steer angular rate feedback stabilizes the wobble mode. They also show how the
+gains need to change with respect to vehicle speed. This is the simplest
+controller that can stabilize a single track vehicle above a minimum speed.
+Many more automatically balanced single track vehicles have been demonstrated
+over the last 40 years, but none of these advancements have resulted in a
+successful commercial product. Most of these robotic bicycles and motorcycles
+designers did not intend for a human rider to also control the stabilized
+vehicle. Although, an automatically stabilized bicycle can be controlled by a
 human rider if the motor controlled steer torque and the rider applied steer
-torque act on the same steer tube. The purpose of the paper is to try to answer
-this question:
+torque act on the steer in sum. Given that premise, I want to answer this
+question:
 
 Given a bicycle that has a motor (with power, torque, speed, bandwidth limits)
 which can apply a torque between the rear and front frames and a set of sensors
 that can give good measurements or estimates of the bicycle's steer angle,
 steering rate, roll angle, and rolling rate what closed loop dynamics and
-motion are possible and how might a rider controlling this bicycle in a
-summative fashion find the behavior?
+motion are possible and how might a rider controlling this stabilized bicycle
+find the behavior?
 
 Some other notes:
 
@@ -226,10 +227,10 @@ stabilize the system.
 If you now assume full state feedback and we drive the state to zero as before,
 an LQR controller can be realized at each speed. Assumed \(\mathbf{Q}\) and
 \(\mathbf{R}\) to be identity for simplicity. I also scale the gains
-proportinally to limit the maximum torque that can be applied for some expected
-maximum motion. If you dot that, you get some LQR gain scheduling over speed.
-The required gains at the uncontrollable points go to infinity, so you
-bascially can't stabilize below the largest uncontrollable speed.
+proportionally to limit the maximum torque that can be applied for some
+expected maximum motion. If you dot that, you get some LQR gain scheduling over
+speed.  The required gains at the uncontrollable points go to infinity, so you
+basically can't stabilize below the largest uncontrollable speed.
 
 \begin{figure}
   \centering
@@ -241,7 +242,7 @@ bascially can't stabilize below the largest uncontrollable speed.
 Using the scheduling in Figure \ref{fig:lqr-gains} give the dynamics in Figure
 \ref{fig:lqr-eig}. The LQR solution manages to stabilize the system without
 drastically changing the dynamics, in particular the weave frequency is
-unchanged. If large gains are permitted, the LQR controller theorectically can
+unchanged. If large gains are permitted, the LQR controller theoretically can
 stabilize the bicycle at v=0 speed.
 
 \begin{figure}
@@ -292,10 +293,10 @@ matching feeling to the rider.
 
 \section{Motor limitations}
 
-Set bounds on steer torque, power, and even bandwith then solve for the open
-loop steer torque needed to stablize at various speeds.
+Set bounds on steer torque, power, and even bandwidth then solve for the open
+loop steer torque needed to stabilize at various speeds.
 
-Set bounds on steer torque, power, and even bandwith then solve for the open
+Set bounds on steer torque, power, and even bandwidth then solve for the open
 loop steer torque and solve for the four gains that stabilize the system with
 under maximal performance bounds.
 
@@ -314,10 +315,10 @@ Energy costs comparison
 
 \section{Add human control}
 
-What human steer torques are required for normal manuvers? Is it higher for the
+What human steer torques are required for normal maneuvers? Is it higher for the
 stabilized bikes?
 
-Is the stability detrimental to maunerability?
+Is the stability detrimental to maneuverability?
 
 Handling quality metric for the gain scheduled controllers.
 
