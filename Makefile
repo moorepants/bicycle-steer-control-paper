@@ -1,7 +1,10 @@
 pdf: paper.pdf
-paper.html: paper.tex figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
-	pandoc --mathjax --standalone -o paper.html paper.tex
-paper.pdf: paper.tex figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
+paper.html: paper.tex bicycle-steer-control.bib figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
+	pandoc --mathjax --standalone -o paper.html paper.tex --bibliography bicycle-steer-control.bib
+paper.pdf: paper.tex bicycle-steer-control.bib figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
+	pdflatex paper.tex
+	bibtex paper.aux
+	pdflatex paper.tex
 	pdflatex paper.tex
 figures/lqr-eig.png: src/lqr.py
 	python src/lqr.py
