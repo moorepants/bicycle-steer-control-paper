@@ -121,32 +121,46 @@ fig.savefig(os.path.join(FIG_DIR, 'lqr-simulation.png'),
 # steer torque to roll bode plots
 idx = 100
 
+# uncontrolled
 A, B = model.form_state_space_matrices(v=speeds)
 uncontrolled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
-ct.bode_plot(uncontrolled, wrap_phase=True)
+ct.bode_plot(uncontrolled, wrap_phase=True, omega_limits=(0.1, 20))
 
+# controlled
 A, B = model.form_state_space_matrices(v=speeds, **gains)
 controlled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
-ct.bode_plot(controlled, wrap_phase=True)
+ct.bode_plot(controlled, wrap_phase=True, omega_limits=(0.1, 20))
 
-ax = plt.gca()
-ax.set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
-fig = ax.figure
+fig = plt.gcf()
+fig.axes[0].set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
 fig.savefig(os.path.join(FIG_DIR, 'lqr-steer-roll-bode-compare-v01.png'), dpi=300)
 
 
-idx = 500
+idx = 499
 fig = plt.figure()
 
 A, B = model.form_state_space_matrices(v=speeds)
 uncontrolled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
-ct.bode_plot(uncontrolled, wrap_phase=True)
+ct.bode_plot(uncontrolled, wrap_phase=True, omega_limits=(0.1, 20))
 
 A, B = model.form_state_space_matrices(v=speeds, **gains)
 controlled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
-ct.bode_plot(controlled, wrap_phase=True)
+ct.bode_plot(controlled, wrap_phase=True, omega_limits=(0.1, 20))
 
-ax = plt.gca()
-ax.set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
-fig = ax.figure
+fig.axes[0].set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
 fig.savefig(os.path.join(FIG_DIR, 'lqr-steer-roll-bode-compare-v05.png'), dpi=300)
+
+
+idx = 999
+fig = plt.figure()
+
+A, B = model.form_state_space_matrices(v=speeds)
+uncontrolled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+ct.bode_plot(uncontrolled, wrap_phase=True, omega_limits=(0.1, 20))
+
+A, B = model.form_state_space_matrices(v=speeds, **gains)
+controlled = ct.ss(A[idx], B[idx][:, 1], np.array([1.0, 0.0, 0.0, 0.0]), 0)
+ct.bode_plot(controlled, wrap_phase=True, omega_limits=(0.1, 20))
+
+fig.axes[0].set_title('Steer torque to roll angle Bode\nSpeed = {:1.2f} m/s'.format(speeds[idx]))
+fig.savefig(os.path.join(FIG_DIR, 'lqr-steer-roll-bode-compare-v10.png'), dpi=300)

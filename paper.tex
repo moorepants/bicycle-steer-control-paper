@@ -3,8 +3,9 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 
-\title{Summative Robotic Bicycle Steer Control}
-
+\title{Summative Robotic Bicycle Steer Control or
+Effect of Automatic Bicycle Balance Stabilization to Rider Control and
+Handling}
 \author{Jason K. Moore}
 \date{\today}
 
@@ -13,10 +14,25 @@
 
 \section{Introduction}
 
-\cite{Ruijs1986a} demonstrates that roll angle feedback stabilizes the capsize
-mode and roll rate feedback stabilizes the weave mode of a motorcycle.
-
-The purpose of the paper is to try to answer this question:
+Automatic roll stabilization of single track vehicles began in earnest after
+predictive motorcycle models were developed and refined throughout the 1970s.
+Van Zytveld~\cite{Zytveld1975} was the first to attempt to stabilize a small
+motorbike with a controlled inverted pendulum that mimiced rider lean, but was
+not successful in demonstrating what his control models predicted. It was not
+until the mid 1980s in which someone sucessfully demonstrated the first an
+automatically balanced motorcycle~\cite{Ruijs1986a}. Ruijs and Pacejka showed
+that a steer torque driven by speed gain scheduled roll angle feedback
+stabilizes the capsize mode, roll rate feedback stabilizes the weave mode of a
+motorcycle, and steer angular rate feedbck stabilizes the wobble mode. This is,
+in fact, the simplest controller that can stabilize a single track vehicle
+above a minimum speed.  Many more automatically balanced single track vehicles
+have been demonstrated over the last 40 years, but none of these advancements
+have resulted in a useful commercial product. Most of these robotic bicycles
+and motorcycles desingers did not intend for a human rider to also control the
+stabilized vehicle. An automatically stabilized bicycle can be controlled by a
+human rider if the motor controlled steer torque and the rider applied steer
+torque act on the same steer tube. The purpose of the paper is to try to answer
+this question:
 
 Given a bicycle that has a motor (with power, torque, speed, bandwidth limits)
 which can apply a torque between the rear and front frames and a set of sensors
@@ -34,15 +50,25 @@ Some other notes:
 
 \section{Model}
 
-The linear Whipple-Carvallo model can be described by the state space
-equations:
+The linear Whipple-Carvallo bicycle model
+\cite{Whipple1899a,Carvallo1899,Meijaard2007} is the simplest bicycle model
+that exhibits non-minimum phase behavior and self-stablity. It can be described
+by the state space equations:
 
 \begin{align}
-  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u} \\
-  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta}
-  \end{bmatrix} \\
+  \dot{\bar{x}} = \mathbf{A} \bar{x} + \mathbf{B} \bar{u}
+  \textrm{ where }
+  \bar{x} = \begin{bmatrix} \phi \\ \dot{\phi} \\ \delta \\ \dot{\delta} \end{bmatrix}
+  \textrm{ and }
   \bar{u} = \begin{bmatrix} T_{\phi} \\ T_{\delta} \end{bmatrix}
 \end{align}
+
+The states are the roll angle \(\phi\) and steer angle \(\delta\) along with
+their derivatives and the inputs are roll torque \(T_\phi\) and steer torque
+\(T_\delta\). The state \(\mathbf{A}\) and input \(\mathbf{B}\) matrices are
+populated with expressions that are functions of 27 geometric and inertial
+parameters of the nonholonomic mulitbody system made up of four rigid bodies:
+two wheels, front frame, and rear frame.
 
 \begin{figure}
   \centering
@@ -243,14 +269,21 @@ feels in the human control bandwidth.
   \centering
   \includegraphics[width=\columnwidth]{figures/lqr-steer-roll-bode-compare-v01.png}
   \caption{Orange is with the motor control on, blue is without.}
-  \label{fig:lqr-steer-roll-bode-compare}
+  \label{fig:lqr-steer-roll-bode-compare-v01}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=\columnwidth]{figures/lqr-steer-roll-bode-compare-v05.png}
   \caption{Orange is with the motor control on, blue is without.}
-  \label{fig:lqr-steer-roll-bode-compare}
+  \label{fig:lqr-steer-roll-bode-compare-v05}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/lqr-steer-roll-bode-compare-v10.png}
+  \caption{Orange is with the motor control on, blue is without.}
+  \label{fig:lqr-steer-roll-bode-compare-v10}
 \end{figure}
 
 Would it be better/possible to ask for the gains that make the Bode plot of
