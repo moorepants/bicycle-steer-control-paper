@@ -1,6 +1,6 @@
 pdf: paper.pdf
 paper.html: paper.tex bicycle-steer-control.bib figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
-	pandoc --mathjax --standalone -o paper.html paper.tex --bibliography bicycle-steer-control.bib
+	pandoc --mathjax --standalone -o paper.html paper.tex --citeproc --bibliography bicycle-steer-control.bib
 paper.pdf: paper.tex bicycle-steer-control.bib figures/lqr-eig.png figures/pd-eigenvalues.png figures/pole-place-v06.png figures/uncontrolled-eigenvalues-with-rider.png
 	pdflatex paper.tex
 	bibtex paper.aux
