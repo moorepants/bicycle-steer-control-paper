@@ -71,6 +71,14 @@ populated with expressions that are functions of 27 geometric and inertial
 parameters of the nonholonomic mulitbody system made up of four rigid bodies:
 two wheels, front frame, and rear frame.
 
+I use realistic numeric values for the state and input matrices measured from a
+Batatuvs Browser Dutch-style city bicycle and a XX kg rider whos inertira
+properties were estimated using the method of Yeadon. These calculations were
+performed with the BicycleParameters and yeadon software \cite{Dembia2015}. The
+following table gives the numerical values of the vehicle.
+
+TODO: Add table of parameters.
+
 \begin{figure}
   \centering
   \includegraphics[width=\columnwidth]{figures/uncontrolled-with-rider-geometry.png}
@@ -79,6 +87,13 @@ two wheels, front frame, and rear frame.
 \end{figure}
 
 \section{Controllability}
+
+The Whipple-Carvallo model can be uncontrollable at specific speeds.
+\cite{Schwab2010a} showed uncontrollable speeds for two extended
+Whipple-Carvallo models (with rider lean) and their degree of uncontrollability
+using modal controllability. It is also true that the non-extended
+Whipple-Carvallo model exhibits uncontrollable speeds when controlling with
+steer torque, but notably \(v=0\) is not one of those speeds.
 
 The controllability matrix \(\mathbf{C}\) can be formed for the steer input,
 \(T_\delta\). There are speed parameter values where the linear
