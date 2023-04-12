@@ -18,3 +18,4 @@ dependencies:
   - scipy
   - uncertainties
   - yeadon
+  - ipympl
