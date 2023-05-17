@@ -7,6 +7,7 @@ import numpy as np
 import scipy.optimize as spo
 
 from data import bike_with_rider
+#from data import rigid_bike_with_rider as bike_with_rider
 #from data import rigid_bike_without_rider as bike_with_rider
 from model import SteerControlModel
 
@@ -57,7 +58,7 @@ fig.savefig(os.path.join(FIG_DIR, 'roll-rate-gain-evec-effect.png'),
 # Figure 4: Controller that Leila implemented on the balance assist bicycle.
 fig, ax = plt.subplots()
 speeds = np.linspace(0.0, 10.0, num=101)
-kphidots = -8.0*(5.0 - speeds)
+kphidots = -6.0*(5.0 - speeds)
 kphidots[50:] = 0.0
 ax = model.plot_eigenvalue_parts(ax=ax, v=speeds, kphidot=kphidots)
 fig.savefig(os.path.join(FIG_DIR, 'leilas-controller-eig-vs-speeds.png'),
