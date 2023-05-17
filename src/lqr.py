@@ -50,6 +50,7 @@ for i, speed in enumerate(speeds):
 fig, ax = plt.subplots()
 ax = model.plot_eigenvalue_parts(ax=ax, colors=4*['C0'], v=speeds)
 model.plot_eigenvalue_parts(ax=ax, colors=4*['C1'], v=speeds, **gains)
+ax.grid()
 fig.savefig(os.path.join(FIG_DIR, 'lqr-eig.png'), dpi=300)
 
 idxs = [0, 250, 500, 750, 999]

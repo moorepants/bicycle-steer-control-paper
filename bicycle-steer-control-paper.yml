@@ -5,6 +5,7 @@ dependencies:
   - control
   - dynamicisttoolkit
   - ghp-import
+  - ipympl
   - ipython
   - jupyter
   - jupyterlab
