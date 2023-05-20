@@ -57,10 +57,15 @@ fig.savefig(os.path.join(FIG_DIR, 'roll-rate-gain-evec-effect.png'),
 
 # Figure 4: Controller that Leila implemented on the balance assist bicycle.
 fig, ax = plt.subplots()
-speeds = np.linspace(0.0, 10.0, num=101)
-kphidots = -6.0*(5.0 - speeds)
-kphidots[50:] = 0.0
-ax = model.plot_eigenvalue_parts(ax=ax, v=speeds, kphidot=kphidots)
+vmin, vmax = 1.5, 4.7
+Kc, Kv, Cd = 0.7, 8.0, 0.1
+speeds = np.linspace(0.0, 10.0, num=1001)
+kphis = Kc*(vmax - speeds)
+kphis[0:int(vmax*100)] = 0.0
+kphidots = -Kv*(vmax - speeds)
+#kphidots[0:int(vmin*100)] = 0.0
+kphidots[int(vmax*100):] = 0.0
+ax = model.plot_eigenvalue_parts(ax=ax, v=speeds, kphidot=kphidots, kphi=kphis)
 fig.savefig(os.path.join(FIG_DIR, 'leilas-controller-eig-vs-speeds.png'),
             dpi=300)
 
